@@ -14,11 +14,18 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 
 
+
+#include "Lut.h"
+#include "Osc.h"
+
+
 //==============================================================================
 /**
 */
 class TwirrlAudioProcessor  : public AudioProcessor
 {
+    Osc* osc;
+
 public:
     //==============================================================================
     TwirrlAudioProcessor();

@@ -11,6 +11,9 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+#include <math.h>
+#include <iostream>
+
 
 //==============================================================================
 TwirrlAudioProcessor::TwirrlAudioProcessor()
@@ -25,6 +28,7 @@ TwirrlAudioProcessor::TwirrlAudioProcessor()
                        )
 #endif
 {
+    lutInit();
 }
 
 TwirrlAudioProcessor::~TwirrlAudioProcessor()
@@ -87,61 +91,77 @@ void TwirrlAudioProcessor::changeProgramName (int index, const String& newName)
 //==============================================================================
 void TwirrlAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
-}
+        osc = new Osc(sampleRate, 80);
+    }
 
-void TwirrlAudioProcessor::releaseResources()
-{
-    // When playback stops, you can use this as an opportunity to free up any
-    // spare memory, etc.
-}
+    void TwirrlAudioProcessor::releaseResources()
+    {
+        // When playback stops, you can use this as an opportunity to free up any
+        // spare memory, etc.
+    }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
-bool TwirrlAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
-{
-  #if JucePlugin_IsMidiEffect
-    ignoreUnused (layouts);
-    return true;
-  #else
-    // This is the place where you check if the layout is supported.
-    // In this template code we only support mono or stereo.
-    if (layouts.getMainOutputChannelSet() != AudioChannelSet::mono()
-     && layouts.getMainOutputChannelSet() != AudioChannelSet::stereo())
-        return false;
+    bool TwirrlAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
+    {
+      #if JucePlugin_IsMidiEffect
+        ignoreUnused (layouts);
+        return true;
+      #else
+        // This is the place where you check if the layout is supported.
+        // In this template code we only support mono or stereo.
+        if (layouts.getMainOutputChannelSet() != AudioChannelSet::mono()
+         && layouts.getMainOutputChannelSet() != AudioChannelSet::stereo())
+            return false;
 
-    // This checks if the input layout matches the output layout
-   #if ! JucePlugin_IsSynth
-    if (layouts.getMainOutputChannelSet() != layouts.getMainInputChannelSet())
-        return false;
-   #endif
+        // This checks if the input layout matches the output layout
+       #if ! JucePlugin_IsSynth
+        if (layouts.getMainOutputChannelSet() != layouts.getMainInputChannelSet())
+            return false;
+       #endif
 
-    return true;
-  #endif
-}
+        return true;
+      #endif
+    }
 #endif
 
 void TwirrlAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
 {
-    const int totalNumInputChannels  = getTotalNumInputChannels();
-    const int totalNumOutputChannels = getTotalNumOutputChannels();
 
-    // In case we have more outputs than inputs, this code clears any output
-    // channels that didn't contain input data, (because these aren't
-    // guaranteed to be empty - they may contain garbage).
-    // This is here to avoid people getting screaming feedback
-    // when they first compile a plugin, but obviously you don't need to keep
-    // this code if your algorithm always overwrites all the output channels.
-    for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-        buffer.clear (i, 0, buffer.getNumSamples());
+
+    buffer.clear();
+
+    int time;
+    MidiMessage m;
+ 
+    for (MidiBuffer::Iterator i (midiMessages); i.getNextEvent (m, time);)
+    {
+        if (m.isNoteOn())
+        {
+            double freq=pow(2, (m.getNoteNumber()-69.)/12.)*440.;
+            std::cout << freq;
+            std::cout << "\n";
+            osc->setFreq(freq);
+        }
+        else if (m.isNoteOff())
+        {
+        }
+        else if (m.isAftertouch())
+        {
+        }
+        else if (m.isPitchWheel())
+        {
+        }
+ 
+    }
+
 
     // This is the place where you'd normally do the guts of your plugin's
     // audio processing...
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
+    for (int channel = 0; channel < 1; ++channel)
     {
         float* channelData = buffer.getWritePointer (channel);
+        osc->process(channelData, buffer.getNumSamples());
 
-        // ..do something to the data...
     }
 }
 
