@@ -2,6 +2,7 @@
 #define _OSC_H
 
 #include "Lut.h"
+#include <cmath>
 
 
 class Osc{
@@ -14,8 +15,14 @@ class Osc{
     private:
         int32_t phase; // Q15 fixed float
         int32_t phaseinc;
+        int32_t N2;//number of harmonics (odd)
         double freqtophaseinc;
         float freq;
+        float scale;
+
+        float y;
+        float leak;
+        double sR;//sampleRate
 
 
 };  

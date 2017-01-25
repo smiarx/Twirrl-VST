@@ -22,7 +22,7 @@ void lutInit(){
     }
 
     lutInvSine[0] = lutInvSine[LUTSineSize/2] = lutInvSine[LUTSineSize] = invSineBad;
-    int sz2 = LUTSineSize>>2;
+    int sz2 = LUTSineSize>>1;
 
     for (int i=1; i<=8; ++i){
         lutInvSine[i] = lutInvSine[LUTSineSize-i] = invSineBad;
