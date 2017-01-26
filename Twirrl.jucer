@@ -11,6 +11,8 @@
               pluginAAXCategory="AAX_ePlugInCategory_Dynamics" jucerVersion="4.3.0">
   <MAINGROUP id="wmVdxZ" name="Twirrl">
     <GROUP id="{A1071578-94E3-BC4A-E52F-E955F10E582B}" name="Source">
+      <FILE id="BnKyqQ" name="Parameters.cpp" compile="1" resource="0" file="Source/Parameters.cpp"/>
+      <FILE id="yZmg8N" name="Parameters.h" compile="0" resource="0" file="Source/Parameters.h"/>
       <FILE id="aT0UzM" name="Osc.cpp" compile="1" resource="0" file="Source/Osc.cpp"/>
       <FILE id="BtoPvn" name="Osc.h" compile="0" resource="0" file="Source/Osc.h"/>
       <FILE id="j3StoX" name="Constants.h" compile="0" resource="0" file="Source/Constants.h"/>

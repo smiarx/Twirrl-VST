@@ -57,6 +57,7 @@ ifeq ($(CONFIG),Release)
 endif
 
 OBJECTS := \
+  $(JUCE_OBJDIR)/Parameters_fb275273.o \
   $(JUCE_OBJDIR)/Osc_ced01de0.o \
   $(JUCE_OBJDIR)/Lut_3476acec.o \
   $(JUCE_OBJDIR)/PluginProcessor_a059e380.o \
@@ -94,6 +95,11 @@ clean:
 strip:
 	@echo Stripping Twirrl
 	-@$(STRIP) --strip-unneeded $(JUCE_OUTDIR)/$(TARGET)
+
+$(JUCE_OBJDIR)/Parameters_fb275273.o: ../../Source/Parameters.cpp
+	-@mkdir -p $(JUCE_OBJDIR)
+	@echo "Compiling Parameters.cpp"
+	@$(CXX) $(JUCE_CXXFLAGS) -o "$@" -c "$<"
 
 $(JUCE_OBJDIR)/Osc_ced01de0.o: ../../Source/Osc.cpp
 	-@mkdir -p $(JUCE_OBJDIR)

@@ -17,14 +17,22 @@
 
 #include "Lut.h"
 #include "Osc.h"
+#include "Parameters.h"
 
 
 //==============================================================================
 /**
 */
+        
+
+
+
+
 class TwirrlAudioProcessor  : public AudioProcessor
 {
     Osc* osc;
+    VCF* vcf;
+    ParamFloat* cutoff;
 
 public:
     //==============================================================================
@@ -63,10 +71,14 @@ public:
     void getStateInformation (MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+
+    void updateCutoff(float c) {vcf->setFreq(c*80);};
+
 private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TwirrlAudioProcessor)
 };
+
 
 
 #endif  // PLUGINPROCESSOR_H_INCLUDED

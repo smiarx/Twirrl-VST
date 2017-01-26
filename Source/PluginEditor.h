@@ -15,11 +15,11 @@
 #include "PluginProcessor.h"
 
 
+
 //==============================================================================
 /**
 */
-class TwirrlAudioProcessorEditor  : public AudioProcessorEditor
-{
+class TwirrlAudioProcessorEditor  : public AudioProcessorEditor{
 public:
     TwirrlAudioProcessorEditor (TwirrlAudioProcessor&);
     ~TwirrlAudioProcessorEditor();
@@ -32,6 +32,8 @@ private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     TwirrlAudioProcessor& processor;
+    
+ 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TwirrlAudioProcessorEditor)
 };

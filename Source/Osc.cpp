@@ -41,7 +41,6 @@ void Osc::process(float* buf, int numSamples){
         
 
         //denominator (invSine)
-        //dphase=LUTPhase(phase);
         pfrac = PhaseFrac(phase);
         tbl = LOOKUP(lutInvSine, phase);
 
@@ -70,3 +69,63 @@ void Osc::process(float* buf, int numSamples){
 
         
 }
+
+
+
+
+
+
+VCF::VCF(double sampleRate, float freq, float nk){
+        s1 = s2 = s3 = s4 = 0.f;
+        k=nk;
+        sR=sampleRate;
+        sD=1./sampleRate;
+        setFreq(freq);
+}
+
+
+void VCF::setFreq(float fr){
+        freq=fr;
+        double wcD = 2.0*sR*tan(sD*pi*freq);
+        if(wcD<0)
+                wcD=0;
+        double TwcD = sD*wcD;
+
+        b0=TwcD/(TwcD+2.);
+        b0p4=b0*b0*b0*b0;
+        a1=(TwcD-2.)/(TwcD+2.);
+}
+
+
+
+void VCF::process(float*buf, int numSamples){
+        double s;
+        float in, out, u, prev, next;
+
+
+        for (int i=0; i<numSamples; i++){
+                s = s4 + b0*(s3 + b0*(s2 + b0*s1));
+                in=*buf;
+                out=(b0p4*in + s) /(1.+ b0p4*k);
+                *(buf++) = out;
+
+                u = in - k*out;
+
+                //update filters states
+                prev = u;
+                next = b0*prev + s1;
+                s1 = b0*prev - a1*next;
+
+                prev = next;
+                next = b0*prev + s2;
+                s2 = b0*prev - a1*next;
+
+                prev = next;
+                next = b0*prev + s3;
+                s3 = b0*prev - a1*next;
+
+                s4 = b0*next - a1*out;
+        }
+}
+
+

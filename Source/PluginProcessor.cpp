@@ -29,6 +29,11 @@ TwirrlAudioProcessor::TwirrlAudioProcessor()
 #endif
 {
     lutInit();
+    addParameter (cutoff = new ParamFloat (this, "cutoff", // parameter ID
+                                                  "Cutoff", // parameter name
+                                                  0.0f,   // mininum value
+                                                  20.0f,   // maximum value
+                                                  8.f, &TwirrlAudioProcessor::updateCutoff)); // default value
 }
 
 TwirrlAudioProcessor::~TwirrlAudioProcessor()
@@ -92,13 +97,14 @@ void TwirrlAudioProcessor::changeProgramName (int index, const String& newName)
 void TwirrlAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
         osc = new Osc(sampleRate, 80);
-    }
+        vcf = new VCF(sampleRate, 600, 2.3);
+}
 
-    void TwirrlAudioProcessor::releaseResources()
-    {
-        // When playback stops, you can use this as an opportunity to free up any
-        // spare memory, etc.
-    }
+void TwirrlAudioProcessor::releaseResources()
+{
+    // When playback stops, you can use this as an opportunity to free up any
+    // spare memory, etc.
+}
 
 #ifndef JucePlugin_PreferredChannelConfigurations
     bool TwirrlAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
@@ -161,6 +167,7 @@ void TwirrlAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& 
     {
         float* channelData = buffer.getWritePointer (channel);
         osc->process(channelData, buffer.getNumSamples());
+        vcf->process(channelData, buffer.getNumSamples());
 
     }
 }
