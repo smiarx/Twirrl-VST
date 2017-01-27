@@ -28,7 +28,11 @@ class Voice;
 
 enum ParamID{
     cutoffID,
-    resID
+    resID,
+    aID,
+    dID,
+    sID,
+    rID
 };
 
 
@@ -77,6 +81,10 @@ public:
 
     ParamFloat* cutoff;
     ParamFloat* res;
+    ParamFloat* a;
+    ParamFloat* d;
+    ParamFloat* s;
+    ParamFloat* r;
 
     void updateParameter(ParamID, float value);
 

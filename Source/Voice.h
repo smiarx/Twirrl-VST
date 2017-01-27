@@ -8,11 +8,31 @@
 
 
 #define NVOICES 1
+#define ENVCURVE (-4.f)
 
 
 class Voice{
 
     public:
+
+
+    struct Env{
+            Env(Voice& vc, int samplesPerBlock, float sR, float a, float d, float s, float r);
+            ~Env();
+            void attack();
+            void release();
+            void changeStage(int stg);
+            void process(int numSamples);
+
+            Voice& voice;
+            float* buf;
+            float level,s;
+            float a2,b1,growth;
+            int stage;
+            int32_t count;
+            int32_t a,d,r;
+    };
+
     class Osc{
         public:
             Osc(Voice& vc, double sampleRate);
@@ -52,20 +72,24 @@ class Voice{
     };
 
     public:
-        Voice(TwirrlAudioProcessor& prt, double sR);
+        Voice(TwirrlAudioProcessor& prt, double sR, int sPB);
 
         void process(float* buf, int numSamples);
         void start(float fr);
+        void release();
+        void stop();
         bool isRunning(){ return running;};
         void updateParameter(ParamID id, float value);
 
     private:
         TwirrlAudioProcessor& parent;
+        Env env;
         Osc osc;
         VCF vcf;
 
         bool running;
         float freq;
+        int samplesPerBlock;
         double sampleRate;
         double sampleDur;
 };

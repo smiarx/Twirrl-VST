@@ -34,6 +34,10 @@ TwirrlAudioProcessor::TwirrlAudioProcessor()
     lutInit();
     addParameter (cutoff = new ParamFloat (*this, cutoffID, "cutoff", "Cutoff",  0.0f, 20.0f, 8.f));
     addParameter (res = new ParamFloat (*this, resID, "res", "Resonnance", 0.0f, 4.0f, 2.f));
+    addParameter (a = new ParamFloat (*this, aID, "attack", "Attack", 0.01f, 5.0f, 0.01f));
+    addParameter (d = new ParamFloat (*this, dID, "decay", "Decay", 0.01f, 5.0f, 0.5f));
+    addParameter (s = new ParamFloat (*this, sID, "sustain", "Sustain", 0.f, 1.f, 0.5f));
+    addParameter (r = new ParamFloat (*this, rID, "release", "Release", 0.01f, 10.0f, 1.5f));
 }
 
 TwirrlAudioProcessor::~TwirrlAudioProcessor()
@@ -96,16 +100,18 @@ void TwirrlAudioProcessor::changeProgramName (int index, const String& newName)
 //==============================================================================
 void TwirrlAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    voices = new Voice(*this, sampleRate);
+    voices = new Voice(*this, sampleRate, samplesPerBlock);
     running=true;
 }
 
 void TwirrlAudioProcessor::releaseResources()
 {
-    delete voices;
-    running=false;
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc.
+    if(running){
+            delete voices;
+            running=false;
+    }
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -152,6 +158,7 @@ void TwirrlAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& 
         }
         else if (m.isNoteOff())
         {
+            voices->release();
         }
         else if (m.isAftertouch())
         {
