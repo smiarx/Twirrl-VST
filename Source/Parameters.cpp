@@ -1,13 +1,14 @@
 #include "Parameters.h"
+#include "PluginProcessor.h"
 
 
-ParamFloat::ParamFloat (TwirrlAudioProcessor* pr, String pid, String nm, NormalisableRange<float> r, float def, void (TwirrlAudioProcessor::*cb)(float))
-   : AudioProcessorParameterWithID (pid, nm), processor(pr), range (r), value (def), defaultValue (def), callback(cb)
+ParamFloat::ParamFloat (TwirrlAudioProcessor& pr, ParamID nb, String pid, String nm, NormalisableRange<float> r, float def)
+   : AudioProcessorParameterWithID (pid, nm), numID(nb), processor(pr), range (r), value (def), defaultValue (def)
 {
 }
 
-ParamFloat::ParamFloat (TwirrlAudioProcessor* pr, String pid, String nm, float minValue, float maxValue, float def, void (TwirrlAudioProcessor::*cb)(float))
-   : AudioProcessorParameterWithID (pid, nm), processor(pr), range (minValue, maxValue), value (def), defaultValue (def), callback(cb)
+ParamFloat::ParamFloat (TwirrlAudioProcessor& pr, ParamID nb, String pid, String nm, float minValue, float maxValue, float def)
+   : AudioProcessorParameterWithID (pid, nm), numID(nb), processor(pr), range (minValue, maxValue), value (def), defaultValue (def)
 {
 }
 
@@ -36,5 +37,5 @@ ParamFloat& ParamFloat::operator= (float newValue)
 
 void ParamFloat::setValue (float newValue){
     value = range.convertFrom0to1 (newValue);
-    (processor->*callback)(value);
+    processor.updateParameter(numID, value);
 }

@@ -3,8 +3,8 @@
 
 
 #include "../JuceLibraryCode/JuceHeader.h"
+#include "PluginProcessor.h"
 
-class TwirrlAudioProcessor;
 
 class ParamFloat  : public AudioProcessorParameterWithID
 {
@@ -12,21 +12,19 @@ public:
     /** Creates a ParamFloat with an ID, name, and range.
         On creation, its value is set to the default value.
     */
-    ParamFloat (TwirrlAudioProcessor* pr, String parameterID, String name,
+    ParamFloat (TwirrlAudioProcessor& pr, ParamID nb, String parameterID, String name,
                          NormalisableRange<float> normalisableRange,
-                         float defaultValue,
-                         void (TwirrlAudioProcessor::*cb)(float));
+                         float defaultValue);
 
     /** Creates a ParamFloat with an ID, name, and range.
         On creation, its value is set to the default value.
         For control over skew factors, you can use the other
         constructor and provide a NormalisableRange.
     */
-    ParamFloat (TwirrlAudioProcessor* pr, String parameterID, String name,
+    ParamFloat (TwirrlAudioProcessor& pr, ParamID nb, String parameterID, String name,
                          float minValue,
                          float maxValue,
-                         float defaultValue,
-                         void (TwirrlAudioProcessor::*cb)(float));
+                         float defaultValue);
 
     /** Destructor. */
     ~ParamFloat();
@@ -46,9 +44,9 @@ public:
 private:
     //==============================================================================
     float value, defaultValue;
+    ParamID numID;
 
-    TwirrlAudioProcessor* processor;
-    void (TwirrlAudioProcessor::*callback)(float);
+    TwirrlAudioProcessor& processor;
 
     float getValue() const override;
     void setValue (float newValue) override;

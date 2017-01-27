@@ -16,23 +16,26 @@
 
 
 #include "Lut.h"
-#include "Osc.h"
-#include "Parameters.h"
 
 
 //==============================================================================
 /**
 */
         
+class ParamFloat;
+class Voice;
 
 
+enum ParamID{
+    cutoffID,
+    resID
+};
 
 
 class TwirrlAudioProcessor  : public AudioProcessor
 {
-    Osc* osc;
-    VCF* vcf;
-    ParamFloat* cutoff;
+    Voice* voices;
+    bool running;
 
 public:
     //==============================================================================
@@ -72,7 +75,10 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
 
-    void updateCutoff(float c) {vcf->setFreq(c*80);};
+    ParamFloat* cutoff;
+    ParamFloat* res;
+
+    void updateParameter(ParamID, float value);
 
 private:
     //==============================================================================

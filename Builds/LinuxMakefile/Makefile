@@ -57,8 +57,8 @@ ifeq ($(CONFIG),Release)
 endif
 
 OBJECTS := \
+  $(JUCE_OBJDIR)/Voice_616ec393.o \
   $(JUCE_OBJDIR)/Parameters_fb275273.o \
-  $(JUCE_OBJDIR)/Osc_ced01de0.o \
   $(JUCE_OBJDIR)/Lut_3476acec.o \
   $(JUCE_OBJDIR)/PluginProcessor_a059e380.o \
   $(JUCE_OBJDIR)/PluginEditor_94d4fb09.o \
@@ -96,14 +96,14 @@ strip:
 	@echo Stripping Twirrl
 	-@$(STRIP) --strip-unneeded $(JUCE_OUTDIR)/$(TARGET)
 
+$(JUCE_OBJDIR)/Voice_616ec393.o: ../../Source/Voice.cpp
+	-@mkdir -p $(JUCE_OBJDIR)
+	@echo "Compiling Voice.cpp"
+	@$(CXX) $(JUCE_CXXFLAGS) -o "$@" -c "$<"
+
 $(JUCE_OBJDIR)/Parameters_fb275273.o: ../../Source/Parameters.cpp
 	-@mkdir -p $(JUCE_OBJDIR)
 	@echo "Compiling Parameters.cpp"
-	@$(CXX) $(JUCE_CXXFLAGS) -o "$@" -c "$<"
-
-$(JUCE_OBJDIR)/Osc_ced01de0.o: ../../Source/Osc.cpp
-	-@mkdir -p $(JUCE_OBJDIR)
-	@echo "Compiling Osc.cpp"
 	@$(CXX) $(JUCE_CXXFLAGS) -o "$@" -c "$<"
 
 $(JUCE_OBJDIR)/Lut_3476acec.o: ../../Source/Lut.cpp

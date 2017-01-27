@@ -14,6 +14,8 @@
 #include <math.h>
 #include <iostream>
 
+#include "Voice.h"
+#include "Parameters.h"
 
 //==============================================================================
 TwirrlAudioProcessor::TwirrlAudioProcessor()
@@ -28,12 +30,10 @@ TwirrlAudioProcessor::TwirrlAudioProcessor()
                        )
 #endif
 {
+    running=false;
     lutInit();
-    addParameter (cutoff = new ParamFloat (this, "cutoff", // parameter ID
-                                                  "Cutoff", // parameter name
-                                                  0.0f,   // mininum value
-                                                  20.0f,   // maximum value
-                                                  8.f, &TwirrlAudioProcessor::updateCutoff)); // default value
+    addParameter (cutoff = new ParamFloat (*this, cutoffID, "cutoff", "Cutoff",  0.0f, 20.0f, 8.f));
+    addParameter (res = new ParamFloat (*this, resID, "res", "Resonnance", 0.0f, 4.0f, 2.f));
 }
 
 TwirrlAudioProcessor::~TwirrlAudioProcessor()
@@ -96,12 +96,14 @@ void TwirrlAudioProcessor::changeProgramName (int index, const String& newName)
 //==============================================================================
 void TwirrlAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-        osc = new Osc(sampleRate, 80);
-        vcf = new VCF(sampleRate, 600, 2.3);
+    voices = new Voice(*this, sampleRate);
+    running=true;
 }
 
 void TwirrlAudioProcessor::releaseResources()
 {
+    delete voices;
+    running=false;
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc.
 }
@@ -146,7 +148,7 @@ void TwirrlAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& 
             double freq=pow(2, (m.getNoteNumber()-69.)/12.)*440.;
             std::cout << freq;
             std::cout << "\n";
-            osc->setFreq(freq);
+            voices->start(freq);
         }
         else if (m.isNoteOff())
         {
@@ -163,11 +165,13 @@ void TwirrlAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& 
 
     // This is the place where you'd normally do the guts of your plugin's
     // audio processing...
+    Voice* vc = voices;
     for (int channel = 0; channel < 1; ++channel)
     {
         float* channelData = buffer.getWritePointer (channel);
-        osc->process(channelData, buffer.getNumSamples());
-        vcf->process(channelData, buffer.getNumSamples());
+        for(int i=0; i<NVOICES; ++i)
+            if(vc->isRunning())
+                (vc++)->process(channelData, buffer.getNumSamples());
 
     }
 }
@@ -195,6 +199,18 @@ void TwirrlAudioProcessor::setStateInformation (const void* data, int sizeInByte
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
+}
+
+
+void TwirrlAudioProcessor::updateParameter(ParamID id, float value){
+    if(!running)
+        return;
+    switch(id){
+        default:
+            Voice* vc = voices;
+            for(int i=0; i<NVOICES; i++)
+                (vc++)->updateParameter(id, value);
+    }
 }
 
 //==============================================================================
