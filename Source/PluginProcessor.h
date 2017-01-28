@@ -15,8 +15,9 @@
 
 
 
-#include "Lut.h"
 
+
+#define NVOICES 1
 
 //==============================================================================
 /**
@@ -27,6 +28,8 @@ class Voice;
 
 
 enum ParamID{
+    sawID,
+    sqID,
     cutoffID,
     resID,
     aID,
@@ -79,6 +82,10 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
 
+
+    void  doVoice(void (Voice::*func)(float), float value);
+    ParamFloat* saw;
+    ParamFloat* sq;
     ParamFloat* cutoff;
     ParamFloat* res;
     ParamFloat* a;
@@ -92,6 +99,7 @@ private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TwirrlAudioProcessor)
 };
+
 
 
 

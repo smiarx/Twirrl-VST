@@ -13,7 +13,7 @@ Voice::Voice(TwirrlAudioProcessor& prt, double sR, int sPB) :
     freq(0.f),
     running(false),
     env(Env(*this, sPB, sR, prt.a->get(), prt.d->get(), prt.s->get(), prt.r->get())),
-    osc(Osc(*this, sR)),
+    osc(Osc(*this, sR, prt.saw->get(), prt.sq->get())),
     vcf(VCF(*this, prt.cutoff->get(), prt.res->get()))
 {}
 
@@ -40,31 +40,6 @@ void Voice::process(float* buf, int numSamples){
     for(int i=0; i<numSamples; ++i)
         *(buf++) *= *(envbuf++);
 }
-
-
-void Voice::updateParameter(ParamID id, float value){
-    switch(id){
-        case cutoffID:
-            vcf.updateCutoff(value);
-            break;
-        case resID:
-            vcf.updateRes(value);
-            break;
-        case aID:
-            env.a = static_cast<int32_t>(value*sampleRate);
-            break;
-        case dID:
-            env.d = static_cast<int32_t>(value*sampleRate);
-            break;
-        case sID:
-            env.s = value;
-            break;
-        case rID:
-            env.r = static_cast<int32_t>(value*sampleRate);
-            break;
-    }
-}
-
 
 
 
@@ -159,8 +134,10 @@ void Voice::Env::process(int numSamples){
 /////OSC
 
 
-Voice::Osc::Osc(Voice& vc, double sampleRate): voice(vc){
+Voice::Osc::Osc(Voice& vc, double sampleRate, float sawl, float sql): voice(vc){
     freqtophaseinc =  LUTSineSize / sampleRate *65536. *0.5;
+    sawlvl = sawl;
+    sqlvl = sql;
     phase = 0;//TODO random phase
     saw=-0.5f;//TODO initial value function of phase
     sq=-0.5f;
@@ -212,29 +189,38 @@ inline float blit(int32_t phase, int N2, float scale){
         blt= num*denom*scale;
     }
 
-
 }
 
 void Voice::Osc::process(float* buf, int numSamples){
     float blt, saw1, sq1;
     float pulsepos,pulseneg;
+    bool dosaw,dosq;
 
     saw1=saw;
     sq1=sq;
 
+    dosaw=sawlvl>0;
+    dosq=sawlvl>0;
+
 
     for (int i=0; i< numSamples; ++i){
 
-        blt=blit(phase,N2,scale);
-        saw1 =  blt-scale + saw1*leak;
+        if(dosaw){
+            blt=blit(phase,N2,scale);
+            saw1 =  blt-scale + saw1*leak;
+            *buf +=  saw1*sawlvl;
+        }
 
 
-        pulsepos=blit(phase,N2,scale);
-        pulseneg=blit(phase+(LUTSineSize << 14) ,N2,scale);
-        //TODO weird shit with this -> pulseneg=blit(phase+LUTSineSize << 18 ,N2,scale);
-        sq1 = pulsepos - pulseneg + sq1*leak;
+        if(dosq){
+            pulsepos=blit(phase,N2,scale);
+            pulseneg=blit(phase+(LUTSineSize << 14) ,N2,scale);
+            //TODO weird shit with this -> pulseneg=blit(phase+LUTSineSize << 18 ,N2,scale);
+            sq1 = pulsepos - pulseneg + sq1*leak;
 
-        *(buf++) = sq1;
+            *buf += sq1*sqlvl;
+        }
+        buf++;
         phase+=phaseinc;
 
     }
@@ -266,13 +252,6 @@ void Voice::VCF::update(){
     a1=(TwcD-2.)/(TwcD+2.);
 }
 
-void Voice::VCF::updateCutoff(float ctoff){
-    cutoff=ctoff;
-    update();
-}
-void Voice::VCF::updateRes(float res){
-    k=res;
-}
 
 
 

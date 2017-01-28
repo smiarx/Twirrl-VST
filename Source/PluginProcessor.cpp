@@ -32,6 +32,8 @@ TwirrlAudioProcessor::TwirrlAudioProcessor()
 {
     running=false;
     lutInit();
+    addParameter (saw = new ParamFloat (*this, sawID, "saw", "Saw Level",  0.0f, 1.f, 1.f));
+    addParameter (sq = new ParamFloat (*this, sqID, "square", "Pulse Level",  0.0f, 1.f, 1.f));
     addParameter (cutoff = new ParamFloat (*this, cutoffID, "cutoff", "Cutoff",  0.0f, 20.0f, 8.f));
     addParameter (res = new ParamFloat (*this, resID, "res", "Resonnance", 0.0f, 4.0f, 2.f));
     addParameter (a = new ParamFloat (*this, aID, "attack", "Attack", 0.01f, 5.0f, 0.01f));
@@ -209,14 +211,44 @@ void TwirrlAudioProcessor::setStateInformation (const void* data, int sizeInByte
 }
 
 
+
+
+
+void inline TwirrlAudioProcessor::doVoice(void (Voice::*func)(float), float value){
+    Voice* vc=voices;
+    for (int i=0; i<NVOICES; ++i)
+        ((vc++)->*func)(value);
+}
+
+
 void TwirrlAudioProcessor::updateParameter(ParamID id, float value){
     if(!running)
         return;
     switch(id){
-        default:
-            Voice* vc = voices;
-            for(int i=0; i<NVOICES; i++)
-                (vc++)->updateParameter(id, value);
+        case sawID:
+            doVoice(&Voice::updateSaw,value);
+            break;
+        case sqID:
+            doVoice(&Voice::updateSq,value);
+            break;
+        case cutoffID:
+            doVoice(&Voice::updateCutoff,value);
+            break;
+        case resID:
+            doVoice(&Voice::updateRes,value);
+            break;
+        case aID:
+            doVoice(&Voice::updateAttack,value);
+            break;
+        case dID:
+            doVoice(&Voice::updateDecay,value);
+            break;
+        case sID:
+            doVoice(&Voice::updateSustain,value);
+            break;
+        case rID:
+            doVoice(&Voice::updateRelease,value);
+            break;
     }
 }
 
