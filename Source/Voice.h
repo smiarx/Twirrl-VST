@@ -36,7 +36,7 @@ class Voice{
     class Osc{
         public:
             Osc(Voice& vc, double sampleRate);
-            
+
             void process(float* buf, int numSamples);
             void update();
 
@@ -49,10 +49,10 @@ class Voice{
             double freqtophaseinc;
             float scale;
 
-            float y;
+            float saw, sq;
             float leak;
 
-    };  
+    };
 
     class VCF{
         public:

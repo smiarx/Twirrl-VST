@@ -162,6 +162,8 @@ void Voice::Env::process(int numSamples){
 Voice::Osc::Osc(Voice& vc, double sampleRate): voice(vc){
     freqtophaseinc =  LUTSineSize / sampleRate *65536. *0.5;
     phase = 0;//TODO random phase
+    saw=-0.5f;//TODO initial value function of phase
+    sq=-0.5f;
 };
 
 
@@ -172,56 +174,72 @@ void Voice::Osc::update(){
     scale= 0.5/N;
     N2=2*N+1;
 
-    y=-0.46f;//TODO initial value function of phase
     leak=0.9999f;
 
 
 }
 
 
-void Voice::Osc::process(float* buf, int numSamples){
+inline float blit(int32_t phase, int N2, float scale){
     float* tbl;
-    float y1, num, denom, pfrac;
-    int dphase, nphase;
+    float blt, num, denom, pfrac;
+    int nphase;
 
-    y1=y;
+    //numerator Sine
+    nphase = phase*N2;
+    pfrac = PhaseFrac(nphase);
+    tbl = LOOKUP(lutSine, nphase);
+    num = LUTInterp(tbl,pfrac);
+
+
+    //denominator (invSine)
+    pfrac = PhaseFrac(phase);
+    tbl = LOOKUP(lutInvSine, phase);
+
+
+    if(tbl[0]==invSineBad || tbl[1]==invSineBad){
+        tbl = LOOKUP(lutSine, phase);
+        denom = LUTInterp(tbl, pfrac);
+        if(std::abs(denom) < 0.0005f){
+            blt= 1.f + scale;
+        }
+        else
+            blt=num/denom*scale;
+
+    }
+    else{
+        denom = LUTInterp(tbl, pfrac);
+        blt= num*denom*scale;
+    }
+
+
+}
+
+void Voice::Osc::process(float* buf, int numSamples){
+    float blt, saw1, sq1;
+    float pulsepos,pulseneg;
+
+    saw1=saw;
+    sq1=sq;
 
 
     for (int i=0; i< numSamples; ++i){
 
-        //numerator Sine
-        nphase = phase*N2;
-        pfrac = PhaseFrac(nphase);
-        tbl = LOOKUP(lutSine, nphase);
-        num = LUTInterp(tbl,pfrac);
+        blt=blit(phase,N2,scale);
+        saw1 =  blt-scale + saw1*leak;
 
 
-        //denominator (invSine)
-        pfrac = PhaseFrac(phase);
-        tbl = LOOKUP(lutInvSine, phase);
+        pulsepos=blit(phase,N2,scale);
+        pulseneg=blit(phase+(LUTSineSize << 14) ,N2,scale);
+        //TODO weird shit with this -> pulseneg=blit(phase+LUTSineSize << 18 ,N2,scale);
+        sq1 = pulsepos - pulseneg + sq1*leak;
 
-
-        if(tbl[0]==invSineBad || tbl[1]==invSineBad){
-            tbl = LOOKUP(lutSine, phase);
-            denom = LUTInterp(tbl, pfrac);
-            if(std::abs(denom) < 0.0005f){
-                y1= 1.f +leak*y1;
-            }
-            else
-                y1=(num/denom-1)*scale + leak*y1;
-
-        }
-        else{
-            denom = LUTInterp(tbl, pfrac);
-            y1= (num*denom-1)*scale + leak*y1;
-        }
-
-
-        *(buf++) = y1;
+        *(buf++) = sq1;
         phase+=phaseinc;
 
     }
-    y=y1;
+    saw=saw1;
+    sq=sq1;
 
 
 
