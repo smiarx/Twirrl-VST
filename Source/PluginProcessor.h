@@ -13,6 +13,7 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
+#include "LFO.h"
 
 
 
@@ -28,6 +29,7 @@ class Voice;
 
 
 enum ParamID{
+    lforateID,
     sawID,
     sqID,
     cutoffID,
@@ -41,6 +43,7 @@ enum ParamID{
 
 class TwirrlAudioProcessor  : public AudioProcessor
 {
+    LFO lfo;
     Voice* voices;
     bool running;
 
@@ -84,6 +87,7 @@ public:
 
 
     void  doVoice(void (Voice::*func)(float), float value);
+    ParamFloat* lforate;
     ParamFloat* saw;
     ParamFloat* sq;
     ParamFloat* cutoff;

@@ -57,6 +57,7 @@ ifeq ($(CONFIG),Release)
 endif
 
 OBJECTS := \
+  $(JUCE_OBJDIR)/LFO_e2398216.o \
   $(JUCE_OBJDIR)/Voice_616ec393.o \
   $(JUCE_OBJDIR)/Parameters_fb275273.o \
   $(JUCE_OBJDIR)/Lut_3476acec.o \
@@ -95,6 +96,11 @@ clean:
 strip:
 	@echo Stripping Twirrl
 	-@$(STRIP) --strip-unneeded $(JUCE_OUTDIR)/$(TARGET)
+
+$(JUCE_OBJDIR)/LFO_e2398216.o: ../../Source/LFO.cpp
+	-@mkdir -p $(JUCE_OBJDIR)
+	@echo "Compiling LFO.cpp"
+	@$(CXX) $(JUCE_CXXFLAGS) -o "$@" -c "$<"
 
 $(JUCE_OBJDIR)/Voice_616ec393.o: ../../Source/Voice.cpp
 	-@mkdir -p $(JUCE_OBJDIR)

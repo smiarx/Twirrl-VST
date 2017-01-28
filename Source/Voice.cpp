@@ -5,11 +5,12 @@
 
 
 
-Voice::Voice(TwirrlAudioProcessor& prt, double sR, int sPB) :
+Voice::Voice(TwirrlAudioProcessor& prt, double sR, int sPB, float* lfoBuf) :
     parent(prt),
     samplesPerBlock(sPB),
     sampleRate(sR),
     sampleDur(1./sR),
+    lfoBuf(lfoBuf),
     freq(0.f),
     running(false),
     env(Env(*this, sPB, sR, prt.a->get(), prt.d->get(), prt.s->get(), prt.r->get())),

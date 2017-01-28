@@ -32,6 +32,7 @@ TwirrlAudioProcessor::TwirrlAudioProcessor()
 {
     running=false;
     lutInit();
+    addParameter (lforate = new ParamFloat (*this, lforateID, "lforate", "LFO rate",  0.0f, 10.f, 0.8f));
     addParameter (saw = new ParamFloat (*this, sawID, "saw", "Saw Level",  0.0f, 1.f, 1.f));
     addParameter (sq = new ParamFloat (*this, sqID, "square", "Pulse Level",  0.0f, 1.f, 1.f));
     addParameter (cutoff = new ParamFloat (*this, cutoffID, "cutoff", "Cutoff",  0.0f, 20.0f, 8.f));
@@ -44,6 +45,8 @@ TwirrlAudioProcessor::TwirrlAudioProcessor()
 
 TwirrlAudioProcessor::~TwirrlAudioProcessor()
 {
+    if(running)
+        delete voices;
 }
 
 //==============================================================================
@@ -102,7 +105,8 @@ void TwirrlAudioProcessor::changeProgramName (int index, const String& newName)
 //==============================================================================
 void TwirrlAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    voices = new Voice(*this, sampleRate, samplesPerBlock);
+    lfo.start(sampleRate, samplesPerBlock, lforate->get());
+    voices = new Voice(*this, sampleRate, samplesPerBlock, lfo.getBuf());
     running=true;
 }
 
@@ -174,7 +178,10 @@ void TwirrlAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& 
 
     // This is the place where you'd normally do the guts of your plugin's
     // audio processing...
+    
+
     Voice* vc = voices;
+    lfo.process();
     for (int channel = 0; channel < 1; ++channel)
     {
         float* channelData = buffer.getWritePointer (channel);
@@ -225,6 +232,9 @@ void TwirrlAudioProcessor::updateParameter(ParamID id, float value){
     if(!running)
         return;
     switch(id){
+        case lforateID:
+            lfo.updateRate(value);
+            break;
         case sawID:
             doVoice(&Voice::updateSaw,value);
             break;

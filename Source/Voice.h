@@ -67,7 +67,7 @@ class Voice{
 
         };
 
-        Voice(TwirrlAudioProcessor& prt, double sR, int sPB);
+        Voice(TwirrlAudioProcessor& prt, double sR, int sPB, float* lfoBuf);
 
         void process(float* buf, int numSamples);
         void start(float fr);
@@ -91,6 +91,7 @@ class Voice{
         VCF vcf;
 
         bool running;
+        float* lfoBuf;
         float freq;
         int samplesPerBlock;
         double sampleRate;
