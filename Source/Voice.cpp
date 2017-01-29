@@ -12,15 +12,20 @@ Voice::Voice(TwirrlAudioProcessor& prt, double sR, int sPB, float* lfoBuf) :
     sampleDur(1./sR),
     lfoBuf(lfoBuf),
     freq(0.f),
+    midinum(0),
+    midilut(nullptr),
     running(false),
     env(Env(*this, sPB, sR, prt.a->get(), prt.d->get(), prt.s->get(), prt.r->get())),
-    osc(Osc(*this, sR, prt.saw->get(), prt.sq->get())),
+    osc(Osc(*this, sR, prt.vibrato->get(), prt.saw->get(), prt.sq->get())),
     vcf(VCF(*this, prt.cutoff->get(), prt.res->get()))
 {}
 
 
-void Voice::start(float fr){
-    freq=fr;
+void Voice::start(int midinote){
+
+    midinum = midinote;
+    midilut =  lutMidi + midinum*(LUTMidiSize>>6);
+    freq=midilut[0];
     env.attack();
     osc.update();
     vcf.update();
@@ -135,13 +140,17 @@ void Voice::Env::process(int numSamples){
 /////OSC
 
 
-Voice::Osc::Osc(Voice& vc, double sampleRate, float sawl, float sql): voice(vc){
+Voice::Osc::Osc(Voice& vc, double sampleRate, float vib, float sawl, float sql) :
+    voice(vc),
+    vibrato(vib)
+{
     freqtophaseinc =  LUTSineSize / sampleRate *65536. *0.5;//65536=2^16
     sawlvl = sawl;
     sqlvl = sql;
     phase = 0;//TODO random phase
     saw=-0.5f;//TODO initial value function of phase
     sq=-0.5f;
+
 };
 
 
@@ -197,6 +206,8 @@ void Voice::Osc::process(float* buf, int numSamples){
     float pulsepos,pulseneg;
     bool dosaw,dosq;
 
+    float *midilut=voice.midilut, *lfobuf=voice.lfoBuf;
+
     saw1=saw;
     sq1=sq;
 
@@ -222,6 +233,16 @@ void Voice::Osc::process(float* buf, int numSamples){
             *buf += sq1*sqlvl;
         }
         buf++;
+
+
+        //vibrato
+        float vib = *(lfobuf++) * vibrato * (LUTMidiSize >> 7);
+        int32_t ivib = (int32_t) vib;
+        float fvib = vib-ivib;
+        ivib = ivib<<1;
+        float freq = midilut[ivib] + fvib*midilut[ivib+1];
+        phaseinc = freqtophaseinc*freq;
+
         phase+=phaseinc;
 
     }

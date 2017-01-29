@@ -33,7 +33,7 @@ class Voice{
         };
 
         struct Osc{
-            Osc(Voice& vc, double sampleRate, float sawlvl, float sqlvl);
+            Osc(Voice& vc, double sampleRate, float vib, float sawlvl, float sqlvl);
 
             void process(float* buf, int numSamples);
             void update();
@@ -46,9 +46,11 @@ class Voice{
             double freqtophaseinc;
             float scale;
 
+            float vibrato;
             float sawlvl, sqlvl;
             float saw, sq;
             float leak;
+
 
         };
 
@@ -70,11 +72,12 @@ class Voice{
         Voice(TwirrlAudioProcessor& prt, double sR, int sPB, float* lfoBuf);
 
         void process(float* buf, int numSamples);
-        void start(float fr);
+        void start(int midinote);
         void release();
         void stop();
         bool isRunning(){ return running;};
 
+        void updateVibrato(float vib){ osc.vibrato=vib;}
         void updateCutoff(float ctoff){ vcf.cutoff=ctoff; vcf.update();}
         void updateRes(float res){ vcf.k=res;}
         void updateAttack(float a){ env.a=static_cast<int32_t>(a*sampleRate);}
@@ -93,6 +96,8 @@ class Voice{
         bool running;
         float* lfoBuf;
         float freq;
+        int midinum;
+        float* midilut;
         int samplesPerBlock;
         double sampleRate;
         double sampleDur;

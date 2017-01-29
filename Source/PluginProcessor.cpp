@@ -33,6 +33,7 @@ TwirrlAudioProcessor::TwirrlAudioProcessor()
     running=false;
     lutInit();
     addParameter (lforate = new ParamFloat (*this, lforateID, "lforate", "LFO rate",  0.0f, 10.f, 0.8f));
+    addParameter (vibrato = new ParamFloat (*this, vibratoID, "vibrato", "Vibrato",  0.0f, 1.f, 0.2f));
     addParameter (saw = new ParamFloat (*this, sawID, "saw", "Saw Level",  0.0f, 1.f, 1.f));
     addParameter (sq = new ParamFloat (*this, sqID, "square", "Pulse Level",  0.0f, 1.f, 1.f));
     addParameter (cutoff = new ParamFloat (*this, cutoffID, "cutoff", "Cutoff",  0.0f, 20.0f, 8.f));
@@ -157,10 +158,10 @@ void TwirrlAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& 
     {
         if (m.isNoteOn())
         {
-            double freq=pow(2, (m.getNoteNumber()-69.)/12.)*440.;
-            std::cout << freq;
-            std::cout << "\n";
-            voices->start(freq);
+            //double freq=pow(2, (m.getNoteNumber()-69.)/12.)*440.;
+            //std::cout << freq;
+            //std::cout << "\n";
+            voices->start(m.getNoteNumber());
         }
         else if (m.isNoteOff())
         {
@@ -234,6 +235,9 @@ void TwirrlAudioProcessor::updateParameter(ParamID id, float value){
     switch(id){
         case lforateID:
             lfo.updateRate(value);
+            break;
+        case vibratoID:
+            doVoice(&Voice::updateVibrato,value);
             break;
         case sawID:
             doVoice(&Voice::updateSaw,value);

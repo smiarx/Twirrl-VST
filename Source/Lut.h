@@ -4,10 +4,13 @@
 
 #define LUTSineSize ((int32_t) 8192)
 #define LUTSineMask ((int32_t) (LUTSineSize-1))
-
-
-
 #define LOOKUP(table, phase) ((table) + ((((phase)>>16) & LUTSineMask)<<1))
+
+
+#define LUTMidiSize ((int32_t) 16384)
+//#define LUTMidiMask ((int32_t) (LUTMidiSize-1))
+
+
 #define LUTInterp(tlb,pfrac) (tbl[0] + tbl[1]*pfrac)
 
 
@@ -21,6 +24,10 @@ extern float lutSine[(LUTSineSize<<1)+1];
 extern float lutInvSine[(LUTSineSize<<1)+1];
 
 const float invSineBad = 1e20f; // Value for 1/sin(x) when sin(x)~=0
+
+
+extern float lutMidi[(LUTMidiSize<<1)-1];
+
 
 void lutInit();
 

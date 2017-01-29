@@ -30,6 +30,7 @@ class Voice;
 
 enum ParamID{
     lforateID,
+    vibratoID,
     sawID,
     sqID,
     cutoffID,
@@ -88,6 +89,7 @@ public:
 
     void  doVoice(void (Voice::*func)(float), float value);
     ParamFloat* lforate;
+    ParamFloat* vibrato;
     ParamFloat* saw;
     ParamFloat* sq;
     ParamFloat* cutoff;
