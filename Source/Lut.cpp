@@ -7,27 +7,39 @@
 
 
 
-float lutSine[LUTSineSize+1];
-float lutInvSine[LUTSineSize+1];
+float lutSine[(LUTSineSize<<1)+1];
+float lutInvSine[(LUTSineSize<<1)+1];
 
 
 void lutInit(){
     double sineIndexToPhase = twopi / LUTSineSize;
+    double phase;
+    float s, is, prevs, previnv;
+    float* ls = lutSine, *linv = lutInvSine;
+
     for (int i=0; i<= LUTSineSize; ++i){
-        double phase = i * sineIndexToPhase;
-        float s = sin(phase);
-        lutSine[i] = s;
-        lutInvSine[i] = 1./s;
+        phase = i * sineIndexToPhase;
+        s = sin(phase);
+        is = 1./s;
+
+        if(i>0){
+            *(ls++) = s-prevs;
+            *(linv++) = is-previnv;
+        }
+
+        *(ls++) = s;
+        *(linv++) = 1./s;
+        prevs=s;
+        previnv=is;
 
     }
 
-    lutInvSine[0] = lutInvSine[LUTSineSize/2] = lutInvSine[LUTSineSize] = invSineBad;
-    int sz2 = LUTSineSize>>1;
 
-    for (int i=1; i<=8; ++i){
-        lutInvSine[i] = lutInvSine[LUTSineSize-i] = invSineBad;
-        lutInvSine[sz2-i] = lutInvSine[sz2+i] = invSineBad;
+    for (int i=0; i<=17; ++i){
+        lutInvSine[i] = lutInvSine[(LUTSineSize<<1)-i] = invSineBad;
+        lutInvSine[LUTSineSize-i] = lutInvSine[LUTSineSize+i] = invSineBad;
     }
+
 
 
 }

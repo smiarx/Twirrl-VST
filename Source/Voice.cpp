@@ -136,7 +136,7 @@ void Voice::Env::process(int numSamples){
 
 
 Voice::Osc::Osc(Voice& vc, double sampleRate, float sawl, float sql): voice(vc){
-    freqtophaseinc =  LUTSineSize / sampleRate *65536. *0.5;
+    freqtophaseinc =  LUTSineSize / sampleRate *65536. *0.5;//65536=2^16
     sawlvl = sawl;
     sqlvl = sql;
     phase = 0;//TODO random phase
@@ -201,7 +201,7 @@ void Voice::Osc::process(float* buf, int numSamples){
     sq1=sq;
 
     dosaw=sawlvl>0;
-    dosq=sawlvl>0;
+    dosq=sqlvl>0;
 
 
     for (int i=0; i< numSamples; ++i){
