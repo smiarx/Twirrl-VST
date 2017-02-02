@@ -10,6 +10,8 @@ Voice::Voice(TwirrlAudioProcessor& prt, double sR, int sPB, float* lfoBuf) :
     samplesPerBlock(sPB),
     sampleRate(sR),
     sampleDur(1./sR),
+    serial(0),
+    audiobuf(new float[sPB]),
     lfoBuf(lfoBuf),
     freq(0.f),
     midinum(0),
@@ -18,7 +20,14 @@ Voice::Voice(TwirrlAudioProcessor& prt, double sR, int sPB, float* lfoBuf) :
     env(Env(*this, sPB, sR, prt.a->get(), prt.d->get(), prt.s->get(), prt.r->get())),
     osc(Osc(*this, sR, prt.vibrato->get(), prt.saw->get(), prt.sq->get())),
     vcf(VCF(*this, prt.cutoff->get(), prt.res->get()))
-{}
+{
+}
+
+
+Voice::~Voice(){
+    delete audiobuf;
+}
+
 
 
 void Voice::start(int midinote){
@@ -33,18 +42,21 @@ void Voice::start(int midinote){
 }
 
 
-void Voice::release(){ env.release();}
-void Voice::stop(){ running=false;}
 
+void Voice::process(float* outbuf, int numSamples){
+    float* bf, *envbuf;
 
-void Voice::process(float* buf, int numSamples){
+    bf=audiobuf;
+    for(int i=0; i<samplesPerBlock; ++i)
+        *(bf++) = 0.f;
+
     env.process(numSamples);
-    osc.process(buf, numSamples);
-    vcf.process(buf, numSamples);
+    osc.process(numSamples);
+    vcf.process(numSamples);
 
-    float* envbuf = env.buf;
+    envbuf = env.buf, bf=audiobuf;
     for(int i=0; i<numSamples; ++i)
-        *(buf++) *= *(envbuf++);
+        *(outbuf++) += (*(bf++)) * (*(envbuf++));
 }
 
 
@@ -65,8 +77,6 @@ Voice::Env::Env(Voice& vc, int samplesPerBlock, float sR, float af, float df, fl
 
 Voice::Env::~Env(){ delete [] buf;}
 
-void Voice::Env::attack(){ changeStage(0);}
-void Voice::Env::release(){ changeStage(3);}
 
 void Voice::Env::changeStage(int stg){
     float goalLevel;
@@ -201,7 +211,8 @@ inline float blit(int32_t phase, int N2, float scale){
 
 }
 
-void Voice::Osc::process(float* buf, int numSamples){
+void Voice::Osc::process(int numSamples){
+    float* buf= voice.audiobuf;
     float blt, saw1, sq1;
     float pulsepos,pulseneg;
     bool dosaw,dosq;
@@ -277,7 +288,8 @@ void Voice::VCF::update(){
 
 
 
-void Voice::VCF::process(float*buf, int numSamples){
+void Voice::VCF::process(int numSamples){
+    float *buf=voice.audiobuf;
     double s;
     float in, out, u, prev, next;
 

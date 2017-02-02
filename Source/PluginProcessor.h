@@ -14,11 +14,11 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 
 #include "LFO.h"
+#include "Voicer.h"
 
 
 
 
-#define NVOICES 1
 
 //==============================================================================
 /**
@@ -46,6 +46,7 @@ class TwirrlAudioProcessor  : public AudioProcessor
 {
     LFO lfo;
     Voice* voices;
+    Voicer voicer;
     bool running;
 
 public:

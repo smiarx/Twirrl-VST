@@ -18,17 +18,19 @@
 #include "Parameters.h"
 
 //==============================================================================
-TwirrlAudioProcessor::TwirrlAudioProcessor()
+TwirrlAudioProcessor::TwirrlAudioProcessor() :
 #ifndef JucePlugin_PreferredChannelConfigurations
-     : AudioProcessor (BusesProperties()
+     AudioProcessor (BusesProperties()
                      #if ! JucePlugin_IsMidiEffect
                       #if ! JucePlugin_IsSynth
                        .withInput  ("Input",  AudioChannelSet::stereo(), true)
                       #endif
                        .withOutput ("Output", AudioChannelSet::stereo(), true)
                      #endif
-                       )
+                       ),
 #endif
+     voices(nullptr),
+     voicer(Voicer(&voices))
 {
     running=false;
     lutInit();
@@ -107,7 +109,14 @@ void TwirrlAudioProcessor::changeProgramName (int index, const String& newName)
 void TwirrlAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     lfo.start(sampleRate, samplesPerBlock, lforate->get());
-    voices = new Voice(*this, sampleRate, samplesPerBlock, lfo.getBuf());
+    voices = static_cast<Voice*> (operator new(sizeof(Voice)*NVOICES));
+    Voice *vc=voices;
+    for(int i=0; i<NVOICES; ++i)
+        new(vc++) Voice(*this, sampleRate, samplesPerBlock, lfo.getBuf());
+    //vc = voices;
+    //for(int i=0; i<NVOICES; ++i)
+    //    std::cout << &(vc++)->running << "\n";
+
     running=true;
 }
 
@@ -161,11 +170,11 @@ void TwirrlAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& 
             //double freq=pow(2, (m.getNoteNumber()-69.)/12.)*440.;
             //std::cout << freq;
             //std::cout << "\n";
-            voices->start(m.getNoteNumber());
+            voicer.noteOn(m.getNoteNumber(),100);
         }
         else if (m.isNoteOff())
         {
-            voices->release();
+            voicer.noteOff(m.getNoteNumber());
         }
         else if (m.isAftertouch())
         {
@@ -186,9 +195,11 @@ void TwirrlAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& 
     for (int channel = 0; channel < 1; ++channel)
     {
         float* channelData = buffer.getWritePointer (channel);
-        for(int i=0; i<NVOICES; ++i)
+        for(int i=0; i<NVOICES; ++i){
             if(vc->isRunning())
-                (vc++)->process(channelData, buffer.getNumSamples());
+                vc->process(channelData, buffer.getNumSamples());
+            vc++;
+        }
 
     }
 }

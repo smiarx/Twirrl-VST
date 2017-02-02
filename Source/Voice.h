@@ -3,11 +3,12 @@
 
 #include "Lut.h"
 #include "Constants.h"
-#include "PluginProcessor.h"
 #include <cmath>
 
 
 #define ENVCURVE (-4.f)
+
+class TwirrlAudioProcessor;
 
 
 class Voice{
@@ -18,12 +19,13 @@ class Voice{
         struct Env{
             Env(Voice& vc, int samplesPerBlock, float sR, float a, float d, float s, float r);
             ~Env();
-            void attack();
-            void release();
+            void attack(){ gate=true; changeStage(0);};
+            void release(){ gate=false; changeStage(3);};
             void changeStage(int stg);
             void process(int numSamples);
 
             Voice& voice;
+            bool gate;
             float* buf;
             float level,s;
             float a2,b1,growth;
@@ -35,7 +37,7 @@ class Voice{
         struct Osc{
             Osc(Voice& vc, double sampleRate, float vib, float sawlvl, float sqlvl);
 
-            void process(float* buf, int numSamples);
+            void process(int numSamples);
             void update();
 
             Voice& voice;
@@ -57,7 +59,7 @@ class Voice{
         struct  VCF{
             VCF(Voice& vc, float cutoff, float nk);
 
-            void process(float* buf, int numSumples);
+            void process(int numSumples);
             void update();
             void updateCutoff(float ctoff);
             void updateRes(float res);
@@ -70,12 +72,18 @@ class Voice{
         };
 
         Voice(TwirrlAudioProcessor& prt, double sR, int sPB, float* lfoBuf);
+        ~Voice();
 
-        void process(float* buf, int numSamples);
+        void process(float* outbuf, int numSamples);
         void start(int midinote);
-        void release();
-        void stop();
+        void release(){ env.release();};
+        void stop(){ running=false;};
         bool isRunning(){ return running;};
+        bool getGate() { return env.gate;};
+        int getMidiNote() {return midinum;};
+        uint32_t getSerial(){ return serial;};
+        void setSerial(uint32_t srl){serial=srl;};
+
 
         void updateVibrato(float vib){ osc.vibrato=vib;}
         void updateCutoff(float ctoff){ vcf.cutoff=ctoff; vcf.update();}
@@ -94,10 +102,13 @@ class Voice{
         VCF vcf;
 
         bool running;
+        float* audiobuf;
+        uint32_t serial;//serial number
         float* lfoBuf;
         float freq;
         int midinum;
         float* midilut;
+
         int samplesPerBlock;
         double sampleRate;
         double sampleDur;
