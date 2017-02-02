@@ -48,7 +48,7 @@ class Voice{
             double freqtophaseinc;
             float scale;
 
-            float vibrato;
+            int32_t vibrato;
             float sawlvl, sqlvl;
             float saw, sq;
             float leak;
@@ -71,7 +71,7 @@ class Voice{
 
         };
 
-        Voice(TwirrlAudioProcessor& prt, double sR, int sPB, float* lfoBuf);
+        Voice(TwirrlAudioProcessor& prt, double sR, int sPB, int32_t* lfoBuf);
         ~Voice();
 
         void process(float* outbuf, int numSamples);
@@ -85,7 +85,7 @@ class Voice{
         void setSerial(uint32_t srl){serial=srl;};
 
 
-        void updateVibrato(float vib){ osc.vibrato=vib;}
+        void updateVibrato(float vib){ osc.vibrato=vib*(1<<16);}
         void updateCutoff(float ctoff){ vcf.cutoff=ctoff; vcf.update();}
         void updateRes(float res){ vcf.k=res;}
         void updateAttack(float a){ env.a=static_cast<int32_t>(a*sampleRate);}
@@ -104,7 +104,7 @@ class Voice{
         bool running;
         float* audiobuf;
         uint32_t serial;//serial number
-        float* lfoBuf;
+        int32_t* lfoBuf;
         float freq;
         int midinum;
         float* midilut;

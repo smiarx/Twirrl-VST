@@ -5,7 +5,7 @@
 
 
 
-Voice::Voice(TwirrlAudioProcessor& prt, double sR, int sPB, float* lfoBuf) :
+Voice::Voice(TwirrlAudioProcessor& prt, double sR, int sPB, int32_t* lfoBuf) :
     parent(prt),
     samplesPerBlock(sPB),
     sampleRate(sR),
@@ -217,7 +217,8 @@ void Voice::Osc::process(int numSamples){
     float pulsepos,pulseneg;
     bool dosaw,dosq;
 
-    float *midilut=voice.midilut, *lfobuf=voice.lfoBuf;
+    float *midilut=voice.midilut;
+    int32_t *lfobuf=voice.lfoBuf;
 
     saw1=saw;
     sq1=sq;
@@ -247,10 +248,9 @@ void Voice::Osc::process(int numSamples){
 
 
         //vibrato
-        float vib = *(lfobuf++) * vibrato * (LUTMidiSize >> 7);
-        int32_t ivib = (int32_t) vib;
-        float fvib = vib-ivib;
-        ivib = ivib<<1;
+        int32_t vib = Q16MUL(*(lfobuf++), vibrato);
+        int32_t ivib = LUTMidiIndex(vib);
+        float fvib = MidiFrac(vib);
         float freq = midilut[ivib] + fvib*midilut[ivib+1];
         phaseinc = freqtophaseinc*freq;
 

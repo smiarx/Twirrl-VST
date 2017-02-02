@@ -1,7 +1,7 @@
 #ifndef _LFO_H
 #define _LFO_H
 
-
+#include <cstdint>
 
 class LFO{
     public:
@@ -10,14 +10,14 @@ class LFO{
         void start(float sampleRate, int samplesPerBlock, float rate);
         void process();
         void updateRate(float rate){phaseinc = ratetophaseinc*rate;};
-        float* getBuf(){return buf;};
+        int32_t* getBuf(){return buf;};
 
     private:
-        float* buf;
+        int32_t* buf;
         int bufSize;
-        float ratetophaseinc;
-        float phaseinc;
-        float phase;
+        int32_t ratetophaseinc;
+        int32_t phaseinc;
+        int32_t phase;
 };
 
 #endif
