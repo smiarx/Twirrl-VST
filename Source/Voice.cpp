@@ -292,6 +292,7 @@ void Voice::VCF::process(int numSamples){
     float *buf=voice.audiobuf;
     double s;
     int32_t* lfobuf=voice.lfoBuf;
+    float * envbuf=voice.env.buf, envsustain=voice.env.s;
     int32_t cut;
     float fcut;
     float *tblb, *tbla;
@@ -301,7 +302,7 @@ void Voice::VCF::process(int numSamples){
     for (int i=0; i<numSamples; i++){
 
         //compute pulsation
-        cut = midibase + cutoff + Q16MUL(*(lfobuf++), lfomod);
+        cut = midibase + cutoff + Q16MUL(*(lfobuf++), lfomod) + (*(envbuf++)-envsustain)*envmod;
         if(cut >= (LUTVCFSize<<16)) cut = (LUTVCFSize<<16)-1;
 
         tblb = VCFLOOKUP(lutVCFb, cut);

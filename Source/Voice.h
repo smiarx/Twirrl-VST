@@ -63,7 +63,7 @@ class Voice{
             void update();
 
             Voice& voice;
-            int32_t midibase, cutoff, lfomod;
+            int32_t midibase, cutoff, lfomod, envmod;
             float k;
             double b0, b0p4, a1;
             double s1,s2,s3,s4; //first order filter state
@@ -87,6 +87,7 @@ class Voice{
         void updateVibrato(float vib){ osc.vibrato=vib*(1<<16);}
         void updateCutoff(float ctoff){ vcf.cutoff=ctoff*VCFMidiMul;}
         void updateVCFLFO(float lfomod){ vcf.lfomod=lfomod*VCFMidiMul;}
+        void updateVCFEnv(float envmod){ vcf.envmod=envmod*VCFMidiMul;}
         void updateRes(float res){ vcf.k=res;}
         void updateAttack(float a){ env.a=std::max(static_cast<int32_t>(a*sampleRate),1);}
         void updateDecay(float d){ env.d=std::max(static_cast<int32_t>(d*sampleRate),1);}
