@@ -46,12 +46,14 @@ class Voice{
             int32_t phasediff;
             int32_t phaseinc;
             int32_t N2;//number of harmonics (odd)
+            int32_t N2sub;
             double freqtophaseinc;
             float scale;
+            float scalesub;
 
             int32_t vibrato;
-            float sawlvl, sqlvl;
-            float saw, sq;
+            float sawlvl, sqlvl, sublvl;
+            float saw, sq, sub;
             float leak;
 
 
@@ -109,6 +111,7 @@ class Voice{
         void updateRelease(float r){ env.r=std::max(static_cast<int32_t>(r*sampleRate),1);}
         void updateSaw(float saw){ osc.sawlvl=saw;}
         void updateSq(float sq){ osc.sqlvl=sq;}
+        void updateSub(float sub){ osc.sublvl=sub;}
 
     private:
         TwirrlAudioProcessor& parent;

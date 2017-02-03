@@ -40,6 +40,7 @@ TwirrlAudioProcessor::TwirrlAudioProcessor() :
     addParameter (vibrato = new ParamFloat (*this, vibratoID, "vibrato", "Vibrato",  0.0f, 1.f, 0.2f));
     addParameter (saw = new ParamFloat (*this, sawID, "saw", "Saw Level",  0.0f, 1.f, 1.f));
     addParameter (sq = new ParamFloat (*this, sqID, "square", "Pulse Level",  0.0f, 1.f, 1.f));
+    addParameter (sub = new ParamFloat (*this, subID, "sub", "Sub Level",  0.0f, 1.f, 0.5f));
     addParameter (noise = new ParamFloat (*this, noiseID, "noise", "Noise Level",  0.0f, 1.f, 0.1));
     addParameter (cutoff = new ParamFloat (*this, cutoffID, "cutoff", "Cutoff",  -12.0f, 60.0f, 12.f));
     addParameter (res = new ParamFloat (*this, resID, "res", "Resonnance", 0.0f, 4.0f, 2.f));
@@ -260,6 +261,9 @@ void TwirrlAudioProcessor::updateParameter(ParamID id, float value){
             break;
         case sqID:
             doVoice(&Voice::updateSq,value);
+            break;
+        case subID:
+            doVoice(&Voice::updateSub,value);
             break;
         case noiseID:
             doVoice(&Voice::updateNoise,value);

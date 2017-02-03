@@ -30,6 +30,7 @@ Voice::Voice(TwirrlAudioProcessor& prt, double sR, int sPB, int32_t* lfoBuf) :
     updateVibrato(prt.vibrato->get());
     updateSaw(prt.saw->get());
     updateSq(prt.sq->get());
+    updateSub(prt.sub->get());
 
     updateNoise(prt.noise->get());
 
@@ -173,6 +174,7 @@ Voice::Osc::Osc(Voice& vc, double sampleRate) :
     //initial level from random phase
     saw = 0.5 - ((float) ((phase-1) & ((LUTSineSize << 15)-1))) / (LUTSineSize*(1<<15));
     sq= 0.5  - (float) (((phase+phasediff-1) & ((LUTSineSize << 15)-1)) > (LUTSineSize << 14));
+    sub= 0.5  - (float) ((( (phase>>1) +phasediff-1) & ((LUTSineSize << 15)-1)) > (LUTSineSize << 14));
 
 };
 
@@ -181,8 +183,11 @@ Voice::Osc::Osc(Voice& vc, double sampleRate) :
 void Voice::Osc::update(){
     phaseinc = voice.freq*freqtophaseinc;
     int32_t N = (int32_t)(voice.sampleRate*0.5/voice.freq);
+    int32_t Nsub = (int32_t)(voice.sampleRate/voice.freq);
     scale= 0.5/N;
+    scalesub= 0.5/Nsub;
     N2=2*N+1;
+    N2sub=2*Nsub+1;
 
     leak=0.9999f;
 
@@ -226,19 +231,22 @@ inline float blit(int32_t phase, int N2, float scale){
 
 void Voice::Osc::process(int numSamples){
     float* buf= voice.audiobuf;
-    float blt, saw1, sq1;
+    float blt, saw1, sq1, sub1;
     float pulsepos,pulseneg;
-    bool dosaw,dosq;
+    float subpos,subneg;
+    bool dosaw,dosq, dosub;
 
     float *midilut=voice.midilut;
     int32_t *lfobuf=voice.lfoBuf;
-    int32_t phaseinc1=phaseinc, phase1=phase, phasesq;
+    int32_t phaseinc1=phaseinc, phase1=phase, phasesq, phasesub;
 
     saw1=saw;
     sq1=sq;
+    sub1=sub;
 
     dosaw=sawlvl>0;
     dosq=sqlvl>0;
+    dosub=sublvl>0.;
 
 
     for (int i=0; i< numSamples; ++i){
@@ -260,6 +268,15 @@ void Voice::Osc::process(int numSamples){
 
             *buf += sq1*sqlvl;
         }
+
+        if(dosub){
+            phasesub=(phase1>>1)+phasediff;
+            subpos=blit(phasesub, N2sub, scalesub);
+            subneg=blit(phasesub+(LUTSineSize << 14), N2sub, scalesub);
+            sub1 = subpos - subneg + sub1*leak;
+
+            *buf += sub1*sublvl;
+        }
         buf++;
 
 
@@ -277,6 +294,7 @@ void Voice::Osc::process(int numSamples){
     phase=phase1;
     saw=saw1;
     sq=sq1;
+    sub=sub1;
 
 
 
