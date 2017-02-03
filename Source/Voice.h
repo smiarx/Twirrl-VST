@@ -43,6 +43,7 @@ class Voice{
             Voice& voice;
 
             int32_t phase; // Q15 fixed float
+            int32_t phasediff;
             int32_t phaseinc;
             int32_t N2;//number of harmonics (odd)
             double freqtophaseinc;

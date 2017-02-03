@@ -168,10 +168,11 @@ Voice::Osc::Osc(Voice& vc, double sampleRate) :
 {
     freqtophaseinc =  LUTSineSize / sampleRate *65536. *0.5;//65536=2^16
     phase = rand();
+    phasediff= rand();//phase difference between saw & square
 
     //initial level from random phase
     saw = 0.5 - ((float) ((phase-1) & ((LUTSineSize << 15)-1))) / (LUTSineSize*(1<<15));
-    sq= 0.5  - (float) (((phase-1) & ((LUTSineSize << 15)-1)) > (LUTSineSize << 14));
+    sq= 0.5  - (float) (((phase+phasediff-1) & ((LUTSineSize << 15)-1)) > (LUTSineSize << 14));
 
 };
 
@@ -231,6 +232,7 @@ void Voice::Osc::process(int numSamples){
 
     float *midilut=voice.midilut;
     int32_t *lfobuf=voice.lfoBuf;
+    int32_t phaseinc1=phaseinc, phase1=phase, phasesq;
 
     saw1=saw;
     sq1=sq;
@@ -242,15 +244,17 @@ void Voice::Osc::process(int numSamples){
     for (int i=0; i< numSamples; ++i){
 
         if(dosaw){
-            blt=blit(phase,N2,scale);
+            blt=blit(phase1,N2,scale);
             saw1 =  blt-scale + saw1*leak;
             *buf +=  saw1*sawlvl;
         }
 
 
         if(dosq){
-            pulsepos=blit(phase,N2,scale);
-            pulseneg=blit(phase+(LUTSineSize << 14) ,N2,scale);
+            phasesq=phase1+phasediff;
+
+            pulsepos=blit(phasesq,N2,scale);
+            pulseneg=blit(phasesq+(LUTSineSize << 14) ,N2,scale);
             //TODO weird shit with this -> pulseneg=blit(phase+LUTSineSize << 18 ,N2,scale);
             sq1 = pulsepos - pulseneg + sq1*leak;
 
@@ -264,11 +268,13 @@ void Voice::Osc::process(int numSamples){
         int32_t ivib = LUTMidiIndex(vib);
         float fvib = MidiFrac(vib);
         float freq = midilut[ivib] + fvib*midilut[ivib+1];
-        phaseinc = freqtophaseinc*freq;
+        phaseinc1 = freqtophaseinc*freq;
 
-        phase+=phaseinc;
+        phase1+=phaseinc1;
 
     }
+    phaseinc=phaseinc1;
+    phase=phase1;
     saw=saw1;
     sq=sq1;
 
