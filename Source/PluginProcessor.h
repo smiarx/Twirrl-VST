@@ -34,6 +34,7 @@ enum ParamID{
     sawID,
     sqID,
     cutoffID,
+    vcflfoID,
     resID,
     aID,
     dID,
@@ -94,6 +95,7 @@ public:
     ParamFloat* saw;
     ParamFloat* sq;
     ParamFloat* cutoff;
+    ParamFloat* vcflfo;
     ParamFloat* res;
     ParamFloat* a;
     ParamFloat* d;

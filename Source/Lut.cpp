@@ -13,6 +13,13 @@ float lutInvSine[(LUTSineSize<<1)+1];
 
 float lutMidi[(LUTMidiSize<<1)-1];
 
+
+float lutVCFb[(LUTVCFSize<<1)];
+float lutVCFa[(LUTVCFSize<<1)];
+
+
+
+
 void lutInit(){
 
     //Sine
@@ -58,6 +65,27 @@ void lutInit(){
         *(tbl++) = freq;
         prevfreq = freq;
     }
+
+
+    //VCF midi to pulsation
+    double wcD;
+    double b,a,prevb,preva;
+    float *tblb=lutVCFb, *tbla=lutVCFa;
+    for(int i=0; i<LUTVCFSize; ++i){
+        wcD = 2.f*tan(pi/2.f * pow(2, VCFMaxMidi * (i-LUTVCFSize)/(12.f*LUTVCFSize)));
+        b = wcD/(wcD+2.);
+        a = (wcD-2.)/(wcD+2.);
+        if(i>0){
+            *(tblb++) = b-prevb;
+            *(tbla++) = a-preva;
+        }
+        *(tblb++) = b;
+        *(tbla++) = a;
+        prevb=b;
+        preva=a;
+    }
+    tblb[0] = tblb[-2];
+    tbla[0] = tbla[-2];
 
 
 

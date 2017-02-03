@@ -270,19 +270,15 @@ void Voice::Osc::process(int numSamples){
 
 
 Voice::VCF::VCF(Voice& vc, float ctoff, float nk) : voice(vc), cutoff(ctoff), k(nk){
+    lfomod=0;
     s1 = s2 = s3 = s4 = 0.f;
 }
 
 
 void Voice::VCF::update(){
-    double wcD = 2.0*voice.sampleRate*tan(voice.sampleDur*pi*voice.freq*cutoff);
-    if(wcD<0)
-        wcD=0;
-    double TwcD = voice.sampleDur*wcD;
 
-    b0=TwcD/(TwcD+2.);
-    b0p4=b0*b0*b0*b0;
-    a1=(TwcD-2.)/(TwcD+2.);
+    float sR2midi = 69.f + 12.f*log(voice.sampleRate/440.f)/log(2.f) - 12.f;
+    midibase = (voice.midinum - sR2midi)*VCFMidiMul + (LUTVCFSize<<16);
 }
 
 
@@ -291,10 +287,28 @@ void Voice::VCF::update(){
 void Voice::VCF::process(int numSamples){
     float *buf=voice.audiobuf;
     double s;
+    int32_t* lfobuf=voice.lfoBuf;
+    int32_t cut;
+    float fcut;
+    float *tblb, *tbla;
     float in, out, u, prev, next;
 
 
     for (int i=0; i<numSamples; i++){
+
+        //compute pulsation
+        cut = midibase + cutoff + Q16MUL(*(lfobuf++), lfomod);
+        if(cut >= (LUTVCFSize<<16)) cut = (LUTVCFSize<<16)-1;
+
+        tblb = VCFLOOKUP(lutVCFb, cut);
+        tbla = VCFLOOKUP(lutVCFa, cut);
+        fcut = CutFrac(cut);
+
+        //filtering
+        b0 = LUTInterp(tblb, fcut);
+        b0p4=b0*b0*b0*b0;
+        a1 = LUTInterp(tbla, fcut);
+
         s = s4 + b0*(s3 + b0*(s2 + b0*s1));
         in=*buf;
         out=(b0p4*in + s) /(1.+ b0p4*k);

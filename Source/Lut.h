@@ -15,7 +15,16 @@
 //#define LUTMidiMask ((int32_t) (LUTMidiSize-1))
 
 
-#define LUTInterp(tlb,pfrac) (tbl[0] + tbl[1]*pfrac)
+
+#define LUTVCFSize 8192
+#define VCFMaxMidiLOG2 8
+#define VCFMaxMidi (1<<VCFMaxMidiLOG2)
+#define VCFMidiMul ( (LUTVCFSize * (1<<16)) >> VCFMaxMidiLOG2)
+#define LUTVCFCut(midi) ((midi) + (LUTVCFSize * (1<<16)))
+#define VCFLOOKUP(table, cut) ((table) + (((cut) >> 16) << 1))
+
+
+#define LUTInterp(tbl,pfrac) (tbl[0] + tbl[1]*pfrac)
 
 
 
@@ -31,6 +40,10 @@ const float invSineBad = 1e20f; // Value for 1/sin(x) when sin(x)~=0
 
 
 extern float lutMidi[(LUTMidiSize<<1)-1];
+
+
+extern float lutVCFb[(LUTVCFSize<<1)];
+extern float lutVCFa[(LUTVCFSize<<1)];
 
 
 void lutInit();
@@ -50,5 +63,14 @@ inline float MidiFrac(uint32_t inMidi)
 {
     return (float) (inMidi & ((1<<(16-LUTMidiPrec)) -1))/(1<<(16-LUTMidiPrec));
 }
+
+
+inline float CutFrac(uint32_t inCut)
+{
+	union { uint32_t itemp; float ftemp; } u;
+	u.itemp = 0x3F800000 | (0x007FFF80 & ((inCut)<<7));
+	return u.ftemp - 1.f;
+}
+
 
 #endif
