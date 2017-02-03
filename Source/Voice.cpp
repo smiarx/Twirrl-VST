@@ -36,6 +36,7 @@ Voice::Voice(TwirrlAudioProcessor& prt, double sR, int sPB, int32_t* lfoBuf) :
     updateCutoff(prt.cutoff->get());
     updateRes(prt.res->get());
     updateVCFLFO(prt.vcflfo->get());
+    updateVCFEnv(prt.vcfenv->get());
 }
 
 
