@@ -39,8 +39,8 @@ TwirrlAudioProcessor::TwirrlAudioProcessor() :
     addParameter (saw = new ParamFloat (*this, sawID, "saw", "Saw Level",  0.0f, 1.f, 1.f));
     addParameter (sq = new ParamFloat (*this, sqID, "square", "Pulse Level",  0.0f, 1.f, 1.f));
     addParameter (cutoff = new ParamFloat (*this, cutoffID, "cutoff", "Cutoff",  -12.0f, 60.0f, 12.f));
-    addParameter (vcflfo = new ParamFloat (*this, vcflfoID, "vcflfo", "VCF LFO Modulation",  0.f, 30.0f, 0.f));
     addParameter (res = new ParamFloat (*this, resID, "res", "Resonnance", 0.0f, 4.0f, 2.f));
+    addParameter (vcflfo = new ParamFloat (*this, vcflfoID, "vcflfo", "VCF LFO Modulation",  0.f, 30.0f, 0.f));
     addParameter (a = new ParamFloat (*this, aID, "attack", "Attack", 0.01f, 5.0f, 0.01f));
     addParameter (d = new ParamFloat (*this, dID, "decay", "Decay", 0.01f, 5.0f, 0.5f));
     addParameter (s = new ParamFloat (*this, sID, "sustain", "Sustain", 0.f, 1.f, 0.5f));

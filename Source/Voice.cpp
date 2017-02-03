@@ -17,10 +17,22 @@ Voice::Voice(TwirrlAudioProcessor& prt, double sR, int sPB, int32_t* lfoBuf) :
     midinum(0),
     midilut(nullptr),
     running(false),
-    env(Env(*this, sPB, sR, prt.a->get(), prt.d->get(), prt.s->get(), prt.r->get())),
-    osc(Osc(*this, sR, prt.vibrato->get(), prt.saw->get(), prt.sq->get())),
-    vcf(VCF(*this, prt.cutoff->get(), prt.res->get()))
+    env(Env(*this, sPB)),
+    osc(Osc(*this, sR)),
+    vcf(VCF(*this))
 {
+    updateAttack(prt.a->get());
+    updateDecay(prt.d->get());
+    updateSustain(prt.s->get());
+    updateRelease(prt.r->get());
+
+    updateVibrato(prt.vibrato->get());
+    updateSaw(prt.saw->get());
+    updateSq(prt.sq->get());
+
+    updateCutoff(prt.cutoff->get());
+    updateRes(prt.res->get());
+    updateVCFLFO(prt.vcflfo->get());
 }
 
 
@@ -63,15 +75,11 @@ void Voice::process(float* outbuf, int numSamples){
 
 ///////ENV
 
-Voice::Env::Env(Voice& vc, int samplesPerBlock, float sR, float af, float df, float sf, float rf):
+Voice::Env::Env(Voice& vc, int samplesPerBlock):
     voice(vc),
     level(0.)
 {
     buf=new float[samplesPerBlock];
-    a=std::max(static_cast<int32_t>(af*sR),1);
-    d=std::max(static_cast<int32_t>(df*sR),1);
-    s=sf;
-    r=std::max(static_cast<int32_t>(rf*sR),1);
 }
 
 
@@ -150,13 +158,10 @@ void Voice::Env::process(int numSamples){
 /////OSC
 
 
-Voice::Osc::Osc(Voice& vc, double sampleRate, float vib, float sawl, float sql) :
-    voice(vc),
-    vibrato(vib)
+Voice::Osc::Osc(Voice& vc, double sampleRate) :
+    voice(vc)
 {
     freqtophaseinc =  LUTSineSize / sampleRate *65536. *0.5;//65536=2^16
-    sawlvl = sawl;
-    sqlvl = sql;
     phase = 0;//TODO random phase
     saw=-0.5f;//TODO initial value function of phase
     sq=-0.5f;
@@ -269,8 +274,7 @@ void Voice::Osc::process(int numSamples){
 
 
 
-Voice::VCF::VCF(Voice& vc, float ctoff, float nk) : voice(vc), cutoff(ctoff), k(nk){
-    lfomod=0;
+Voice::VCF::VCF(Voice& vc) : voice(vc){
     s1 = s2 = s3 = s4 = 0.f;
 }
 

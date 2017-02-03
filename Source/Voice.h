@@ -17,7 +17,7 @@ class Voice{
 
 
         struct Env{
-            Env(Voice& vc, int samplesPerBlock, float sR, float a, float d, float s, float r);
+            Env(Voice& vc, int samplesPerBlock);
             ~Env();
             void attack(){ gate=true; changeStage(0);};
             void release(){ gate=false; changeStage(3);};
@@ -35,7 +35,7 @@ class Voice{
         };
 
         struct Osc{
-            Osc(Voice& vc, double sampleRate, float vib, float sawlvl, float sqlvl);
+            Osc(Voice& vc, double sampleRate);
 
             void process(int numSamples);
             void update();
@@ -57,7 +57,7 @@ class Voice{
         };
 
         struct  VCF{
-            VCF(Voice& vc, float cutoff, float nk);
+            VCF(Voice& vc);
 
             void process(int numSumples);
             void update();
@@ -88,10 +88,10 @@ class Voice{
         void updateCutoff(float ctoff){ vcf.cutoff=ctoff*VCFMidiMul;}
         void updateVCFLFO(float lfomod){ vcf.lfomod=lfomod*VCFMidiMul;}
         void updateRes(float res){ vcf.k=res;}
-        void updateAttack(float a){ env.a=static_cast<int32_t>(a*sampleRate);}
-        void updateDecay(float d){ env.d=static_cast<int32_t>(d*sampleRate);}
+        void updateAttack(float a){ env.a=std::max(static_cast<int32_t>(a*sampleRate),1);}
+        void updateDecay(float d){ env.d=std::max(static_cast<int32_t>(d*sampleRate),1);}
         void updateSustain(float s){ env.s=s;}
-        void updateRelease(float r){ env.r=static_cast<int32_t>(r*sampleRate);}
+        void updateRelease(float r){ env.r=std::max(static_cast<int32_t>(r*sampleRate),1);}
         void updateSaw(float saw){ osc.sawlvl=saw;}
         void updateSq(float sq){ osc.sqlvl=sq;}
 
