@@ -33,6 +33,7 @@ enum ParamID{
     vibratoID,
     sawID,
     sqID,
+    noiseID,
     cutoffID,
     vcflfoID,
     vcfenvID,
@@ -95,6 +96,7 @@ public:
     ParamFloat* vibrato;
     ParamFloat* saw;
     ParamFloat* sq;
+    ParamFloat* noise;
     ParamFloat* cutoff;
     ParamFloat* vcflfo;
     ParamFloat* vcfenv;

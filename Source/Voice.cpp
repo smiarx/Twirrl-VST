@@ -1,7 +1,7 @@
 #include "Voice.h"
 #include "PluginProcessor.h"
 #include "Parameters.h"
-
+#include <stdlib.h>
 
 
 
@@ -19,6 +19,7 @@ Voice::Voice(TwirrlAudioProcessor& prt, double sR, int sPB, int32_t* lfoBuf) :
     running(false),
     env(Env(*this, sPB)),
     osc(Osc(*this, sR)),
+    noise(Noise(*this, rand())),
     vcf(VCF(*this))
 {
     updateAttack(prt.a->get());
@@ -29,6 +30,8 @@ Voice::Voice(TwirrlAudioProcessor& prt, double sR, int sPB, int32_t* lfoBuf) :
     updateVibrato(prt.vibrato->get());
     updateSaw(prt.saw->get());
     updateSq(prt.sq->get());
+
+    updateNoise(prt.noise->get());
 
     updateCutoff(prt.cutoff->get());
     updateRes(prt.res->get());
@@ -64,6 +67,7 @@ void Voice::process(float* outbuf, int numSamples){
 
     env.process(numSamples);
     osc.process(numSamples);
+    noise.process(numSamples);
     vcf.process(numSamples);
 
     envbuf = env.buf, bf=audiobuf;
@@ -272,6 +276,61 @@ void Voice::Osc::process(int numSamples){
 
 
 
+
+//////NOISE
+
+inline int32_t hash(int32_t inKey)
+{
+    // Thomas Wang's integer hash.
+    // http://www.concentric.net/~Ttwang/tech/inthash.htm
+    // a faster hash for integers. also very good.
+    uint32_t hash = (uint32_t)inKey;
+    hash += ~(hash << 15);
+    hash ^=   hash >> 10;
+    hash +=   hash << 3;
+    hash ^=   hash >> 6;
+    hash += ~(hash << 11);
+    hash ^=   hash >> 16;
+    return (int32)hash;
+}
+
+Voice::Noise::Noise(Voice& vc, uint32_t seed) : voice(vc){
+    seed=hash(seed);
+    s1 = 1243598713U ^ seed; if (s1 <  2) s1 = 1243598713U;
+    s2 = 3093459404U ^ seed; if (s2 <  8) s2 = 3093459404U;
+    s3 = 1821928721U ^ seed; if (s3 < 16) s3 = 1821928721U;
+}
+
+//SC rand functions
+inline uint32 trand( uint32& s1, uint32& s2, uint32& s3 )
+{
+	s1 = ((s1 &  (uint32)-2) << 12) ^ (((s1 << 13) ^  s1) >> 19);
+	s2 = ((s2 &  (uint32)-8) <<  4) ^ (((s2 <<  2) ^  s2) >> 25);
+	s3 = ((s3 & (uint32)-16) << 17) ^ (((s3 <<  3) ^  s3) >> 11);
+	return s1 ^ s2 ^ s3;
+}
+inline float frand2( uint32& s1, uint32& s2, uint32& s3 )
+{
+	// return a float from -1.0 to +0.999...
+	union { uint32 i; float f; } u;
+	u.i = 0x40000000 | (trand(s1,s2,s3) >> 9);
+	return u.f - 3.f;
+}
+
+void Voice::Noise::process(int numSamples){
+    uint32_t ts1=s1, ts2=s3, ts3=s3;
+    float *buf=voice.audiobuf;
+
+    for(int i=0; i<numSamples; ++i)
+        *(buf++) += frand2(ts1,ts2,ts3)*level;
+    s1=ts1, s2=ts2, s3=ts3;
+}
+
+
+
+
+
+//VCF
 
 
 Voice::VCF::VCF(Voice& vc) : voice(vc){

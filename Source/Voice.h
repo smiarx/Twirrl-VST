@@ -56,6 +56,18 @@ class Voice{
 
         };
 
+
+        struct Noise{
+            Noise(Voice& vc, uint32_t seed);
+
+            void process(int numSamples);
+
+            Voice& voice;
+            float level;
+            uint32_t s1,s2,s3;
+        };
+
+
         struct  VCF{
             VCF(Voice& vc);
 
@@ -85,6 +97,7 @@ class Voice{
 
 
         void updateVibrato(float vib){ osc.vibrato=vib*(1<<16);}
+        void updateNoise(float ns){ noise.level=ns;}
         void updateCutoff(float ctoff){ vcf.cutoff=ctoff*VCFMidiMul;}
         void updateVCFLFO(float lfomod){ vcf.lfomod=lfomod*VCFMidiMul;}
         void updateVCFEnv(float envmod){ vcf.envmod=envmod*VCFMidiMul;}
@@ -100,6 +113,7 @@ class Voice{
         TwirrlAudioProcessor& parent;
         Env env;
         Osc osc;
+        Noise noise;
         VCF vcf;
 
         bool running;
