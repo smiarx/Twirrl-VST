@@ -13,6 +13,7 @@
 
 #include <math.h>
 #include <iostream>
+#include <stdlib.h>
 
 #include "Voice.h"
 #include "Parameters.h"
@@ -32,6 +33,7 @@ TwirrlAudioProcessor::TwirrlAudioProcessor() :
      voices(nullptr),
      voicer(Voicer(&voices))
 {
+    srand(time(NULL));
     running=false;
     lutInit();
     addParameter (lforate = new ParamFloat (*this, lforateID, "lforate", "LFO rate",  0.0f, 10.f, 0.8f));

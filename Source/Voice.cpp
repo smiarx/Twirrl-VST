@@ -167,9 +167,11 @@ Voice::Osc::Osc(Voice& vc, double sampleRate) :
     voice(vc)
 {
     freqtophaseinc =  LUTSineSize / sampleRate *65536. *0.5;//65536=2^16
-    phase = 0;//TODO random phase
-    saw=-0.5f;//TODO initial value function of phase
-    sq=-0.5f;
+    phase = rand();
+
+    //initial level from random phase
+    saw = 0.5 - ((float) ((phase-1) & ((LUTSineSize << 15)-1))) / (LUTSineSize*(1<<15));
+    sq= 0.5  - (float) (((phase-1) & ((LUTSineSize << 15)-1)) > (LUTSineSize << 14));
 
 };
 
