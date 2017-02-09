@@ -25,12 +25,15 @@ class Effects{
             int lfo, lfophase, lfophaseinc, depth, predelay;
 
             int wphase;
+            bool running;
         };
 
         Effects(TwirrlAudioProcessor& parent);
         void start(double sampleRate, int samplesPerBlock);
         void stop() {chorus.stop();};
         void process(float *outleft, float* outright, int numSamples);
+
+        void setChorus(bool state) {chorus.running=state;};
 
 
     private:

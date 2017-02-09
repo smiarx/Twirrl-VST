@@ -51,6 +51,8 @@ TwirrlAudioProcessor::TwirrlAudioProcessor() :
     addParameter (d = new ParamFloat (*this, dID, "decay", "Decay", 0.01f, 5.0f, 0.5f));
     addParameter (s = new ParamFloat (*this, sID, "sustain", "Sustain", 0.f, 1.f, 0.5f));
     addParameter (r = new ParamFloat (*this, rID, "release", "Release", 0.01f, 10.0f, 1.5f));
+
+    addParameter (chorus = new ParamBool (*this, chorusID, "chorus", "Chorus", false));
 }
 
 TwirrlAudioProcessor::~TwirrlAudioProcessor()
@@ -302,6 +304,17 @@ void TwirrlAudioProcessor::updateParameter(ParamID id, float value){
             break;
         case rID:
             doVoice(&Voice::updateRelease,value);
+            break;
+    }
+}
+
+
+void TwirrlAudioProcessor::updateParameter(ParamID id, bool value){
+    if(!running)
+        return;
+    switch(id){
+        case chorusID:
+            effects.setChorus(value);
             break;
     }
 }

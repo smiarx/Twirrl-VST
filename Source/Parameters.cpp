@@ -34,8 +34,43 @@ ParamFloat& ParamFloat::operator= (float newValue)
 }
 
 
-
 void ParamFloat::setValue (float newValue){
     value = range.convertFrom0to1 (newValue);
     processor.updateParameter(numID, value);
+}
+
+
+
+
+
+//==============================================================================
+ParamBool::ParamBool (TwirrlAudioProcessor& pr, ParamID nb, String pid, String nm, bool def)
+   : AudioProcessorParameterWithID (pid, nm),
+     numID(nb),
+     processor(pr),
+     value (def ? 1.0f : 0.0f),
+     defaultValue (value)
+{
+}
+
+ParamBool::~ParamBool() {}
+
+float ParamBool::getValue() const                               { return value; }
+float ParamBool::getDefaultValue() const                        { return defaultValue; }
+int ParamBool::getNumSteps() const                              { return 2; }
+float ParamBool::getValueForText (const String& text) const     { return text.getIntValue() != 0 ? 1.0f : 0.0f; }
+String ParamBool::getText (float v, int /*length*/) const       { return String ((int) (v > 0.5f ? 1 : 0)); }
+
+ParamBool& ParamBool::operator= (bool newValue)
+{
+    if (get() != newValue)
+        setValueNotifyingHost (newValue ? 1.0f : 0.0f);
+
+    return *this;
+}
+
+
+void ParamBool::setValue (float newValue){
+    value = newValue;
+    processor.updateParameter(numID, value>=0.5f);
 }

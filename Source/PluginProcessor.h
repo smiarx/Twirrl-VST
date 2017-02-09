@@ -26,6 +26,7 @@
 */
         
 class ParamFloat;
+class ParamBool;
 class Voice;
 
 
@@ -43,7 +44,9 @@ enum ParamID{
     aID,
     dID,
     sID,
-    rID
+    rID,
+
+    chorusID
 };
 
 
@@ -110,7 +113,10 @@ public:
     ParamFloat* s;
     ParamFloat* r;
 
+    ParamBool* chorus;
+
     void updateParameter(ParamID, float value);
+    void updateParameter(ParamID, bool value);
 
 private:
     //==============================================================================

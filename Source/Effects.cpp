@@ -1,6 +1,7 @@
 #include "Effects.h"
 #include "Lut.h"
 #include "PluginProcessor.h"
+#include "Parameters.h"
 
 
 
@@ -12,18 +13,21 @@ void Effects::start(double sR, int sPB){
     sampleRate=sR;
     samplesPerBlock=sPB;
     chorus.start(sR, sPB);
+
+    setChorus(parent.chorus->get());
 }
 
 
 void Effects::process(float* outleft, float* outright, int numSamples){
-    chorus.process(outleft, outright, numSamples);
+    if(chorus.running)
+        chorus.process(outleft, outright, numSamples);
 }
 
 
 Effects::Chorus::Chorus() : bufleft(nullptr), bufright(nullptr)
 {}
 
-#define RATE 0.3
+#define RATE 0.8
 void Effects::Chorus::start(double sR, int sPB){
     bufsize = nextpow2(sR*(CHORUS_DEPTH*2+CHORUS_PREDELAY));
     bufmask = bufsize-1;

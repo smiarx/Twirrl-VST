@@ -9,18 +9,10 @@
 class ParamFloat  : public AudioProcessorParameterWithID
 {
 public:
-    /** Creates a ParamFloat with an ID, name, and range.
-        On creation, its value is set to the default value.
-    */
     ParamFloat (TwirrlAudioProcessor& pr, ParamID nb, String parameterID, String name,
                          NormalisableRange<float> normalisableRange,
                          float defaultValue);
 
-    /** Creates a ParamFloat with an ID, name, and range.
-        On creation, its value is set to the default value.
-        For control over skew factors, you can use the other
-        constructor and provide a NormalisableRange.
-    */
     ParamFloat (TwirrlAudioProcessor& pr, ParamID nb, String parameterID, String name,
                          float minValue,
                          float maxValue,
@@ -56,6 +48,42 @@ private:
     float getValueForText (const String&) const override;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ParamFloat)
+};
+
+
+
+
+
+class ParamBool : public AudioProcessorParameterWithID
+{
+public:
+    ParamBool (TwirrlAudioProcessor& pr, ParamID nb, String parameterID, String name, bool defaultValue);
+    ~ParamBool();
+
+    /** Returns the parameter's current boolean value. */
+    bool get() const noexcept          { return value >= 0.5f; }
+    /** Returns the parameter's current boolean value. */
+    operator bool() const noexcept     { return get(); }
+
+    /** Changes the parameter's current value to a new boolean. */
+    ParamBool& operator= (bool newValue);
+
+
+private:
+    //==============================================================================
+    float value, defaultValue;
+
+    ParamID numID;
+    TwirrlAudioProcessor& processor;
+
+    float getValue() const override;
+    void setValue (float newValue) override;
+    float getDefaultValue() const override;
+    int getNumSteps() const override;
+    String getText (float, int) const override;
+    float getValueForText (const String&) const override;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ParamBool)
 };
 
 
