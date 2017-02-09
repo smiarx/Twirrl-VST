@@ -31,7 +31,8 @@ TwirrlAudioProcessor::TwirrlAudioProcessor() :
                        ),
 #endif
      voices(nullptr),
-     voicer(Voicer(&voices))
+     voicer(Voicer(&voices)),
+     effects(Effects(*this))
 {
     srand(time(NULL));
     running=false;
@@ -115,6 +116,7 @@ void TwirrlAudioProcessor::changeProgramName (int index, const String& newName)
 void TwirrlAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     lfo.start(sampleRate, samplesPerBlock, lforate->get());
+    effects.start(sampleRate, samplesPerBlock);
     voices = static_cast<Voice*> (operator new(sizeof(Voice)*NVOICES));
     Voice *vc=voices;
     for(int i=0; i<NVOICES; ++i)
@@ -132,6 +134,8 @@ void TwirrlAudioProcessor::releaseResources()
     // spare memory, etc.
     if(running){
             delete voices;
+            effects.stop();
+
             running=false;
     }
 }
@@ -195,19 +199,26 @@ void TwirrlAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& 
     // This is the place where you'd normally do the guts of your plugin's
     // audio processing...
     
+    float* left = buffer.getWritePointer(0);
+    float* right = buffer.getWritePointer(1);
+    int numSamples=buffer.getNumSamples();
 
     Voice* vc = voices;
     lfo.process();
-    for (int channel = 0; channel < 1; ++channel)
-    {
-        float* channelData = buffer.getWritePointer (channel);
-        for(int i=0; i<NVOICES; ++i){
-            if(vc->isRunning())
-                vc->process(channelData, buffer.getNumSamples());
-            vc++;
-        }
 
+    //run voices
+    for(int i=0; i<NVOICES; ++i){
+        if(vc->isRunning())
+            vc->process(left, numSamples);
+        vc++;
     }
+
+    //copy left to right
+    float *lft=left, *rght=right;
+    for(int i=0; i<numSamples; ++i)
+        *(rght++) = *(lft++);
+
+    effects.process(left,right,numSamples);
 }
 
 //==============================================================================

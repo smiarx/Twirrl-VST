@@ -57,6 +57,7 @@ ifeq ($(CONFIG),Release)
 endif
 
 OBJECTS := \
+  $(JUCE_OBJDIR)/Effects_68667863.o \
   $(JUCE_OBJDIR)/Voicer_d00fa509.o \
   $(JUCE_OBJDIR)/LFO_e2398216.o \
   $(JUCE_OBJDIR)/Voice_616ec393.o \
@@ -97,6 +98,11 @@ clean:
 strip:
 	@echo Stripping Twirrl
 	-@$(STRIP) --strip-unneeded $(JUCE_OUTDIR)/$(TARGET)
+
+$(JUCE_OBJDIR)/Effects_68667863.o: ../../Source/Effects.cpp
+	-@mkdir -p $(JUCE_OBJDIR)
+	@echo "Compiling Effects.cpp"
+	@$(CXX) $(JUCE_CXXFLAGS) -o "$@" -c "$<"
 
 $(JUCE_OBJDIR)/Voicer_d00fa509.o: ../../Source/Voicer.cpp
 	-@mkdir -p $(JUCE_OBJDIR)

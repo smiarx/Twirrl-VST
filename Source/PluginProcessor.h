@@ -15,6 +15,7 @@
 
 #include "LFO.h"
 #include "Voicer.h"
+#include "Effects.h"
 
 
 
@@ -51,6 +52,7 @@ class TwirrlAudioProcessor  : public AudioProcessor
     LFO lfo;
     Voice* voices;
     Voicer voicer;
+    Effects effects;
     bool running;
 
 public:
