@@ -46,7 +46,11 @@ enum ParamID{
     sID,
     rID,
 
-    chorusID
+    chorusID,
+    delayID,
+    dtimeID,
+    dfeedbackID,
+    dwetID
 };
 
 
@@ -114,6 +118,10 @@ public:
     ParamFloat* r;
 
     ParamBool* chorus;
+    ParamBool* delay;
+    ParamFloat* dtime;
+    ParamFloat* dfeedback;
+    ParamFloat* dwet;
 
     void updateParameter(ParamID, float value);
     void updateParameter(ParamID, bool value);

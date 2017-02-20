@@ -53,6 +53,10 @@ TwirrlAudioProcessor::TwirrlAudioProcessor() :
     addParameter (r = new ParamFloat (*this, rID, "release", "Release", 0.01f, 10.0f, 1.5f));
 
     addParameter (chorus = new ParamBool (*this, chorusID, "chorus", "Chorus", false));
+    addParameter (delay = new ParamBool (*this, delayID, "delay", "Delay", false));
+    addParameter (dtime = new ParamFloat (*this, dtimeID, "dtime", "Delay Time", 0.01f, 2.f, 0.2f));
+    addParameter (dfeedback = new ParamFloat (*this, dfeedbackID, "dfeedback", "Delay Feedback", 0.f, 1.f, 0.7f));
+    addParameter (dwet = new ParamFloat (*this, dwetID, "dwet", "Delay Wet", 0.f, 1.f, 0.7f));
 }
 
 TwirrlAudioProcessor::~TwirrlAudioProcessor()
@@ -305,6 +309,15 @@ void TwirrlAudioProcessor::updateParameter(ParamID id, float value){
         case rID:
             doVoice(&Voice::updateRelease,value);
             break;
+        case dtimeID:
+            effects.setDelayTime(value);
+            break;
+        case dfeedbackID:
+            effects.setDelayFeedback(value);
+            break;
+        case dwetID:
+            effects.setDelayWet(value);
+            break;
     }
 }
 
@@ -315,6 +328,9 @@ void TwirrlAudioProcessor::updateParameter(ParamID id, bool value){
     switch(id){
         case chorusID:
             effects.setChorus(value);
+            break;
+        case delayID:
+            effects.setDelay(value);
             break;
     }
 }
