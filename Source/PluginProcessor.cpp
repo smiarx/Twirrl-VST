@@ -51,6 +51,7 @@ TwirrlAudioProcessor::TwirrlAudioProcessor() :
     addParameter (d = new ParamFloat (*this, dID, "decay", "Decay", 0.01f, 5.0f, 0.5f));
     addParameter (s = new ParamFloat (*this, sID, "sustain", "Sustain", 0.f, 1.f, 0.5f));
     addParameter (r = new ParamFloat (*this, rID, "release", "Release", 0.01f, 10.0f, 1.5f));
+    addParameter (level= new ParamFloat (*this, rID, "level", "Level", 0.f, 1.f, 0.7f));
 
     addParameter (chorus = new ParamBool (*this, chorusID, "chorus", "Chorus", false));
     addParameter (delay = new ParamBool (*this, delayID, "delay", "Delay", false));
@@ -219,8 +220,14 @@ void TwirrlAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& 
         vc++;
     }
 
+    //apply level
+    float *lft=left;
+    for(int i=0; i<numSamples; ++i)
+        *(lft++) *= level->get();
+
     //copy left to right
-    float *lft=left, *rght=right;
+    float *rght=right;
+    lft = left;
     for(int i=0; i<numSamples; ++i)
         *(rght++) = *(lft++);
 

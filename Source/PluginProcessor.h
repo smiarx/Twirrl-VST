@@ -45,6 +45,7 @@ enum ParamID{
     dID,
     sID,
     rID,
+    levelID,
 
     chorusID,
     delayID,
@@ -116,6 +117,7 @@ public:
     ParamFloat* d;
     ParamFloat* s;
     ParamFloat* r;
+    ParamFloat* level;
 
     ParamBool* chorus;
     ParamBool* delay;
