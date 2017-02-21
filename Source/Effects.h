@@ -21,8 +21,10 @@ class Effects{
 
             float* bufleft, *bufright;
             int bufsize, bufmask;
+            float dsampl, dsampr;
             float ratetophaseinc;
-            int32_t lfo, lfophase, lfophaseinc, depth, predelay;
+            float lfo, lfophase, lfophaseinc, depth, predelay;
+
 
             int wphase;
             bool running;
@@ -84,6 +86,7 @@ class Effects{
         void process(float *outleft, float* outright, int numSamples);
 
         void setChorus(bool state) {chorus.running=state;};
+        void setChorusRate(float rate){chorus.lfophaseinc = chorus.ratetophaseinc*rate;};
 
         void setDelay(bool state)  {delay.running=state; if(!state) delay.clear();};
         void setDelayTime(float time){delay.setDelay(time,sampleRate);};
@@ -114,23 +117,22 @@ inline int nextpow2(int v){
 }
 
 
-inline float cubicinterp(float* tbl, int rphase1, int mask, float frac){
-        int rphase0 = rphase1-1;
-        int rphase2 = rphase1+1;
-        int rphase3 = rphase1+2;
+inline float cubicinterp(float* tbl, int irphase1, int mask, float frac){
+		long irphase2 = irphase1 - 1;
+		long irphase3 = irphase1 - 2;
+		long irphase0 = irphase1 + 1;
 
-        float d0 = tbl[rphase0 & mask];
-        float d1 = tbl[rphase1 & mask];
-        float d2 = tbl[rphase2 & mask];
-        float d3 = tbl[rphase3 & mask];
+		float d0 = tbl[irphase0 & mask];
+		float d1 = tbl[irphase1 & mask];
+		float d2 = tbl[irphase2 & mask];
+		float d3 = tbl[irphase3 & mask];
 
         float c0 = d1;
         float c1 = 0.5f * (d2 - d0);
         float c2 = d0 - 2.5f * d1 + 2.f * d2 - 0.5f * d3;
         float c3 = 0.5f * (d3 - d0) + 1.5f * (d1 - d2);
 
-        //return ((c4 * frac + c2) * frac + c1) * frac + c0;
-        return (1.f-frac)*d1+d0*frac;
+        return ((c3 * frac + c2) * frac + c1) * frac + c0;
 }
 
 

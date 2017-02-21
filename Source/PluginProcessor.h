@@ -48,6 +48,7 @@ enum ParamID{
     levelID,
 
     chorusID,
+    crateID,
     delayID,
     dtimeID,
     dfeedbackID,
@@ -120,6 +121,7 @@ public:
     ParamFloat* level;
 
     ParamBool* chorus;
+    ParamFloat* crate;
     ParamBool* delay;
     ParamFloat* dtime;
     ParamFloat* dfeedback;

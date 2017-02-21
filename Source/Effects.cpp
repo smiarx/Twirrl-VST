@@ -5,8 +5,8 @@
 #include "Constants.h"
 
 
-#define CHORUS_DEPTH 0.002
-#define CHORUS_PREDELAY 0.01
+#define CHORUS_DEPTH 0.001
+#define CHORUS_PREDELAY 0.013
 
 #define DELAY_MAX 2
 
@@ -21,6 +21,7 @@ void Effects::start(double sR, int sPB){
     chorus.start(sR, sPB);
     delay.start(sR, sPB);
 
+    setChorusRate(parent.crate->get());
     setChorus(parent.chorus->get());
 
     setDelayTime(parent.dtime->get());
@@ -41,7 +42,6 @@ void Effects::process(float* outleft, float* outright, int numSamples){
 Effects::Chorus::Chorus() : bufleft(nullptr), bufright(nullptr)
 {}
 
-#define RATE 0.8
 void Effects::Chorus::start(double sR, int sPB){
     bufsize = nextpow2(sR*(CHORUS_DEPTH*2+CHORUS_PREDELAY));
     bufmask = bufsize-1;
@@ -52,13 +52,15 @@ void Effects::Chorus::start(double sR, int sPB){
     for(int i=0; i<bufsize; ++i)
         *(bfl++) = *(bfr++) = 0.;
 
-    depth = sR * CHORUS_DEPTH * (1<<16);
-    predelay = sR * CHORUS_PREDELAY * (1<<16);
-    lfophase = 0;
-    ratetophaseinc = 4./sR*sPB*(1<<16);
-    lfophaseinc = ratetophaseinc*RATE;
+    depth = sR * CHORUS_DEPTH;
+    predelay = sR * (CHORUS_PREDELAY+CHORUS_DEPTH);
+    lfophase = 0.f;
+    ratetophaseinc = 4./sR*sPB;
+    //lfophaseinc = ratetophaseinc*RATE;
     wphase=0;
-
+    lfo=depth;
+    dsampl = predelay+lfo;
+    dsampr = predelay-lfo;
 
 }
 
@@ -73,54 +75,59 @@ void Effects::Chorus::stop(){
 
 
 
-void Effects::Chorus::process(float* outleft, float* outright, int numSamples){
+void Effects::Chorus::process(float *outbufleft, float *outbufright, int numSamples){
 
     ////LFO
-    int nlfo;
+    float nlfo;
     lfophase += lfophaseinc;
-    if(lfophase < (1<<16)){
-        int z = lfophase;
-        nlfo = (1<<16) - Q16MUL(z,z);
-    } else if(lfophase < 3*(1<<16)){
-        int z = lfophase - (1<<17);
-        nlfo = Q16MUL(z,z) - (1<<16);
+    if(lfophase < 1.f){
+        float z = lfophase;
+        nlfo = 1.f - z*z;
+    } else if(lfophase < 3.f){
+        float z = lfophase - 2.f;
+        nlfo = z*z - 1.f;
     } else {
-        lfophase -= (1<<18);
-        int z = lfophase;
-        nlfo = (1<<16) - Q16MUL(z,z);
+        lfophase -= 4.f;
+        float z = lfophase;
+        nlfo = 1.f - z*z;
     }
-    nlfo = Q16MUL(nlfo,depth);
-    int lfo1=lfo;
-    int lfo_slop = (nlfo - lfo1)/numSamples;
+    nlfo *= depth;
+    float lfo_slop = (nlfo - lfo)/numSamples;
 
 
-    int wphase1 = wphase;
-    int dell = (predelay + lfo1);
-    int delr = (predelay - lfo1);
-    float *outl=outleft, *outr=outright;
-    for(int i=0; i<numSamples; ++i){
+    //chorus
+    int _wphase = wphase;
+    float _dsampl = dsampl;
+    float _dsampr = dsampr;
+    float *outleft=outbufleft, *outright=outbufright;
+
+    while(numSamples--){
 
         //left
-        bufleft[wphase1 & bufmask] = *outl;
-        int irphasel = wphase1 - (dell >> 16);
-        int fracl = PhaseFrac(dell);
-        *(outl++) += cubicinterp(bufleft, irphasel, bufmask, fracl);
-        dell += lfo_slop;
+        _dsampl += lfo_slop;
+        int idsampl = (int) _dsampl;
+        float pfracl = _dsampl-idsampl;
+        int rphasel=_wphase-idsampl;
+        bufleft[_wphase & bufmask] =  *outleft;
+        *(outleft++) += cubicinterp(bufleft, rphasel, bufmask, pfracl) * invsqrt2;
+
 
         //right
-        bufright[wphase1 & bufmask] = *outr;
-        int irphaser = wphase1 - (delr >> 16);
-        int fracr = PhaseFrac(delr);
-        *(outr++) += cubicinterp(bufright, irphaser, bufmask, fracr);
-        delr -= lfo_slop;
-
-        wphase1++;
-
+        _dsampr -= lfo_slop;
+        int idsampr = (int) _dsampr;
+        float pfracr = _dsampr-idsampr;
+        int rphaser=_wphase-idsampr;
+        bufright[_wphase & bufmask] =  *outright;
+        *(outright++) += cubicinterp(bufright, rphaser, bufmask, pfracr) * invsqrt2;
+        
+        _wphase++;
     }
 
 
     lfo = nlfo;
-    wphase = wphase1;
+    wphase=_wphase;
+    dsampl = _dsampl;
+    dsampr = _dsampr;
 
 }
 
@@ -131,8 +138,8 @@ void Effects::Chorus::process(float* outleft, float* outright, int numSamples){
 
 ////////////DELAY/////////////
 #define DELAYLEAK 0.99f
-#define DELAYLP 2932.f
-#define DELAYHP 167.f
+#define DELAYLP 2381.f
+#define DELAYHP 183.f
 
 Effects::Delay::Delay() : bufleft(nullptr), bufright(nullptr), running(false)
 {}
