@@ -80,6 +80,27 @@ class Effects{
             bool running;
         };
 
+
+
+#define PHASER_STAGES 6
+        struct Phaser {
+            Phaser();
+            void start(double sampleRate, int samplesPerBlock);
+            void process(float* outleft, float* outright, int numSamples);
+            void clear(void){ for(int j=0; j<PHASER_STAGES; j++) historyleft[j] = historyright[j] = 0.f;};
+
+            float aleft[PHASER_STAGES], aright[PHASER_STAGES];//phaser coeff
+            float depth[PHASER_STAGES];
+            float historyleft[PHASER_STAGES+1], historyright[PHASER_STAGES+1];
+            float feedback;
+
+            float ratetophaseinc;
+            float lfo, lfophase, lfophaseinc;
+
+            bool running;
+
+        };
+
         Effects(TwirrlAudioProcessor& parent);
         void start(double sampleRate, int samplesPerBlock);
         void stop() {chorus.stop(); delay.stop();};
@@ -87,6 +108,10 @@ class Effects{
 
         void setChorus(bool state) {chorus.running=state;};
         void setChorusRate(float rate){chorus.lfophaseinc = chorus.ratetophaseinc*rate;};
+
+        void setPhaser(bool state)  {phaser.running=state; if(!state) phaser.clear();};
+        void setPhaserRate(float rate){phaser.lfophaseinc = phaser.ratetophaseinc*rate;};
+        void setPhaserFeedback(float feedback){phaser.feedback = feedback;};
 
         void setDelay(bool state)  {delay.running=state; if(!state) delay.clear();};
         void setDelayTime(float time){delay.setDelay(time,sampleRate);};
@@ -96,6 +121,7 @@ class Effects{
 
     private:
         Chorus chorus;
+        Phaser phaser;
         Delay delay;
 
         TwirrlAudioProcessor& parent;

@@ -49,6 +49,9 @@ enum ParamID{
 
     chorusID,
     crateID,
+    phaserID,
+    prateID,
+    pfeedbackID,
     delayID,
     dtimeID,
     dfeedbackID,
@@ -122,6 +125,9 @@ public:
 
     ParamBool* chorus;
     ParamFloat* crate;
+    ParamBool* phaser;
+    ParamFloat* prate;
+    ParamFloat* pfeedback;
     ParamBool* delay;
     ParamFloat* dtime;
     ParamFloat* dfeedback;

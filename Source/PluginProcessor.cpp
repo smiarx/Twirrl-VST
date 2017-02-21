@@ -55,6 +55,9 @@ TwirrlAudioProcessor::TwirrlAudioProcessor() :
 
     addParameter (chorus = new ParamBool (*this, chorusID, "chorus", "Chorus", false));
     addParameter (crate = new ParamFloat (*this, crateID, "crate", "Chorus Rate", 0.3f, 5.f, 0.8f));
+    addParameter (phaser = new ParamBool (*this, phaserID, "phaser", "Phaser", false));
+    addParameter (prate = new ParamFloat (*this, prateID, "prate", "Phaser Rate", 0.3f, 8.f, 1.2f));
+    addParameter (pfeedback = new ParamFloat (*this, pfeedbackID, "pfeedback", "Phaser Feedback", 0.f, 0.9f, 0.2f));
     addParameter (delay = new ParamBool (*this, delayID, "delay", "Delay", false));
     addParameter (dtime = new ParamFloat (*this, dtimeID, "dtime", "Delay Time", 0.01f, 2.f, 0.2f));
     addParameter (dfeedback = new ParamFloat (*this, dfeedbackID, "dfeedback", "Delay Feedback", 0.f, 1.f, 0.7f));
@@ -320,6 +323,12 @@ void TwirrlAudioProcessor::updateParameter(ParamID id, float value){
         case crateID:
             effects.setChorusRate(value);
             break;
+        case prateID:
+            effects.setPhaserRate(value);
+            break;
+        case pfeedbackID:
+            effects.setPhaserFeedback(value);
+            break;
         case dtimeID:
             effects.setDelayTime(value);
             break;
@@ -339,6 +348,9 @@ void TwirrlAudioProcessor::updateParameter(ParamID id, bool value){
     switch(id){
         case chorusID:
             effects.setChorus(value);
+            break;
+        case phaserID:
+            effects.setPhaser(value);
             break;
         case delayID:
             effects.setDelay(value);

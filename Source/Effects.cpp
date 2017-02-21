@@ -19,10 +19,15 @@ void Effects::start(double sR, int sPB){
     sampleRate=sR;
     samplesPerBlock=sPB;
     chorus.start(sR, sPB);
+    phaser.start(sR, sPB);
     delay.start(sR, sPB);
 
     setChorusRate(parent.crate->get());
     setChorus(parent.chorus->get());
+
+    setPhaserRate(parent.prate->get());
+    setPhaserFeedback(parent.pfeedback->get());
+    setPhaser(parent.phaser->get());
 
     setDelayTime(parent.dtime->get());
     setDelayFeedback(parent.dfeedback->get());
@@ -34,12 +39,14 @@ void Effects::start(double sR, int sPB){
 void Effects::process(float* outleft, float* outright, int numSamples){
     if(chorus.running)
         chorus.process(outleft, outright, numSamples);
+    if(phaser.running)
+        phaser.process(outleft, outright, numSamples);
     if(delay.running)
         delay.process(outleft, outright, numSamples);
 }
 
 
-Effects::Chorus::Chorus() : bufleft(nullptr), bufright(nullptr)
+Effects::Chorus::Chorus() : bufleft(nullptr), bufright(nullptr), running(false)
 {}
 
 void Effects::Chorus::start(double sR, int sPB){
@@ -285,5 +292,91 @@ changesempty:
     wphase=_wphase;
     FINISH_DELAY(left);
     FINISH_DELAY(right);
+}
+
+
+
+
+
+
+
+
+
+#define PHASER_RATE 0.8
+#define PHASER_COEFFS  0.8271, 0.6321, 0.3521,    0.9,    0.7,    0.7
+#define PHASER_DEPTHS    0.14,  0.341,   0.32, 0.0635,   0.29,   0.24
+
+Effects::Phaser::Phaser() :
+    aleft{PHASER_COEFFS},
+    aright{PHASER_COEFFS},
+    depth{PHASER_DEPTHS},
+    historyleft{},
+    historyright{},
+    running(false),
+    lfo(0.f),
+    lfophase(1.f)
+{
+}
+void Effects::Phaser::start(double sR, int sPB){
+
+    ratetophaseinc = 4./sR*sPB;
+    //lfophaseinc = ratetophaseinc*PHASER_RATE;
+
+
+}
+
+
+#define phaser_sign_left +=
+#define phaser_sign_right -=
+
+#define DOPHASER(chan) \
+    float previn##chan = history##chan[j];\
+    history##chan[j] = out##chan;\
+    out##chan = (a##chan[j] phaser_sign_##chan lfo_slop*depth[j]) * (out##chan + history##chan[j+1]) - previn##chan;
+
+void Effects::Phaser::process(float *outbufleft, float *outbufright, int numSamples){
+
+    ////LFO
+    float _lfo;
+    lfophase += lfophaseinc;
+    if(lfophase < 1.f){
+        float z = lfophase;
+        _lfo = 1.f - z*z;
+    } else if(lfophase < 3.f){
+        float z = lfophase - 2.f;
+        _lfo = z*z - 1.f;
+    } else {
+        lfophase -= 4.f;
+        float z = lfophase;
+        _lfo = 1.f - z*z;
+    }
+    float lfo_slop = (_lfo - lfo)/numSamples;
+
+
+    //PHASER
+    float outleft = historyleft[PHASER_STAGES];
+    float outright = historyright[PHASER_STAGES];
+    while(numSamples--){
+
+        //stages inputs
+        outleft = *(outbufleft) + outleft*feedback;
+        outright = *(outbufright) + outright*feedback;
+
+
+        for(int j=0; j<PHASER_STAGES; ++j){
+            DOPHASER(left);
+            DOPHASER(right);
+
+        }
+
+        historyleft[PHASER_STAGES] = outleft;
+        historyright[PHASER_STAGES] = outright;
+
+        *outbufleft++ += outleft;
+        *outbufright++ += outright;
+    }
+
+    lfo = _lfo;
+
 }
 
