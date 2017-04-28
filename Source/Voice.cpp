@@ -229,6 +229,8 @@ inline float blit(int32_t phase, int N2, float scale){
 
 }
 
+
+
 void Voice::Osc::process(int numSamples){
     float* buf= voice.audiobuf;
     float blt, saw1, sq1, sub1;
@@ -249,6 +251,9 @@ void Voice::Osc::process(int numSamples){
     dosub=sublvl>0.;
 
 
+    float* envbuf=voice.env.buf;
+    int32_t pwmphase;
+
     for (int i=0; i< numSamples; ++i){
 
         if(dosaw){
@@ -259,10 +264,13 @@ void Voice::Osc::process(int numSamples){
 
 
         if(dosq){
+            //pwm
+            pwmphase=(LUTSineSize << 14) + (*(envbuf++))*pwm;
+
             phasesq=phase1+phasediff;
 
             pulsepos=blit(phasesq,N2,scale);
-            pulseneg=blit(phasesq+(LUTSineSize << 14) ,N2,scale);
+            pulseneg=blit(phasesq+pwmphase ,N2,scale);
             //TODO weird shit with this -> pulseneg=blit(phase+LUTSineSize << 18 ,N2,scale);
             sq1 = pulsepos - pulseneg + sq1*leak;
 
@@ -288,7 +296,6 @@ void Voice::Osc::process(int numSamples){
         phaseinc1 = freqtophaseinc*freq;
 
         phase1+=phaseinc1;
-
     }
     phaseinc=phaseinc1;
     phase=phase1;

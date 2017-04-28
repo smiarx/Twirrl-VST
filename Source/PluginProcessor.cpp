@@ -39,6 +39,7 @@ TwirrlAudioProcessor::TwirrlAudioProcessor() :
     lutInit();
     addParameter (lforate = new ParamFloat (*this, lforateID, "lforate", "LFO rate",  0.0f, 10.f, 0.8f));
     addParameter (vibrato = new ParamFloat (*this, vibratoID, "vibrato", "Vibrato",  0.0f, 1.f, 0.2f));
+    addParameter (pwm = new ParamFloat (*this, pwmID, "pwm", "Pulse Width",  0.0f, 1.f, 0.2f));
     addParameter (saw = new ParamFloat (*this, sawID, "saw", "Saw Level",  0.0f, 1.f, 1.f));
     addParameter (sq = new ParamFloat (*this, sqID, "square", "Pulse Level",  0.0f, 1.f, 1.f));
     addParameter (sub = new ParamFloat (*this, subID, "sub", "Sub Level",  0.0f, 1.f, 0.5f));
@@ -283,6 +284,9 @@ void TwirrlAudioProcessor::updateParameter(ParamID id, float value){
             break;
         case vibratoID:
             doVoice(&Voice::updateVibrato,value);
+            break;
+        case pwmID:
+            doVoice(&Voice::updatePWM,value);
             break;
         case sawID:
             doVoice(&Voice::updateSaw,value);

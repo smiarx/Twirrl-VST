@@ -11,6 +11,7 @@
 class TwirrlAudioProcessor;
 
 
+
 class Voice{
 
     public:
@@ -53,6 +54,7 @@ class Voice{
 
             int32_t vibrato;
             float sawlvl, sqlvl, sublvl;
+            int32_t pwm;
             float saw, sq, sub;
             float leak;
 
@@ -100,6 +102,7 @@ class Voice{
 
 
         void updateVibrato(float vib){ osc.vibrato=vib*(1<<16);}
+        void updatePWM(float pwm){ osc.pwm=pwm*(LUTSineSize<<14);}
         void updateNoise(float ns){ noise.level=ns;}
         void updateCutoff(float ctoff){ vcf.cutoff=ctoff*VCFMidiMul;}
         void updateVCFLFO(float lfomod){ vcf.lfomod=lfomod*VCFMidiMul;}
